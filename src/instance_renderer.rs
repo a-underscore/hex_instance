@@ -52,7 +52,7 @@ impl<'a> System<'a> for InstanceRenderer {
                 ))
             }) {
                 let sprites = {
-                    let mut sprites = BTreeMap::new();
+                    let mut sprites: BTreeMap<_, Vec<_>> = BTreeMap::new();
 
                     for e in world.em.entities.keys().cloned() {
                         if let Some((i, s, t)) =
@@ -70,7 +70,7 @@ impl<'a> System<'a> for InstanceRenderer {
                                 ))
                             })
                         {
-                            sprites.entry(i.get()).or_insert(Vec::new()).push((s, t));
+                            sprites.entry(i.get()).or_default().push((s, t));
                         }
                     }
 
@@ -91,13 +91,12 @@ impl<'a> System<'a> for InstanceRenderer {
                         .map(|(s, t)| {
                             let color = s.color.into();
                             let transform = t.matrix().into();
-                            let instance_data = InstanceData {
+
+                            InstanceData {
                                 z: s.z,
                                 color,
                                 transform,
-                            };
-
-                            instance_data
+                            }
                         })
                         .collect();
                     let instance_buffer = VertexBuffer::dynamic(&world.display, &instance_data)?;
