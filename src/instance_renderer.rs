@@ -18,9 +18,9 @@ where
     'b: 'a,
 {
     fn update(&mut self, event: &mut Ev, world: &mut World<'a>) -> anyhow::Result<()> {
-        if let Ev::Draw((Event::MainEventsCleared, target)) = event {
+        if let Ev::Draw((Event::MainEventsCleared, _target)) = event {
             for e in world.em.entities.keys().cloned() {
-                if let (Some(id), Some(s)) = (
+                if let (Some(_id), Some(_s)) = (
                     world.cm.get::<Instance>(e, &world.em),
                     world.cm.get::<Sprite>(e, &world.em),
                 ) {}

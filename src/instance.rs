@@ -1,4 +1,4 @@
-use hex::{cid, components::Sprite, ecs::component_manager::Component, glium::vertex::PerInstance};
+use hex::{cid, ecs::component_manager::Component, glium::vertex::PerInstance};
 use std::rc::Rc;
 
 #[derive(Clone)]
