@@ -1,0 +1,28 @@
+use crate::instance::Instance;
+use hex::{
+    anyhow,
+    ecs::{
+        system_manager::{Ev, System},
+        world::World,
+    },
+    glium::glutin::event::Event,
+};
+use std::collections::HashMap;
+
+pub struct InstanceRenderer {
+    renderer: Renderer
+}
+
+impl<'a> System<'a> for InstanceRenderer {
+    fn update(&mut self, event: &mut Ev, world: &mut World) -> anyhow::Result<()> {
+        if let Ev::Draw((Event::MainEventsCleared, target)) = event {
+            for e in world.em.entities.keys().cloned() {
+                if let Some(id) = world.cm.get::<Instance>(e, &world.em) {
+                    
+                }
+            }
+        }
+
+        Ok(())
+    }
+}

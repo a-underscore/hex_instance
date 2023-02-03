@@ -1,2 +1,2 @@
-pub mod instance_id;
+pub mod instance;
 pub mod instance_renderer;
