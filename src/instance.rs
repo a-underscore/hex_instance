@@ -1,4 +1,4 @@
-use hex::{cid, ecs::component_manager::Component, id::id};
+use hex::{cid, components::Sprite, ecs::component_manager::Component, id::id};
 use std::sync::atomic::AtomicUsize;
 
 pub fn iid() -> usize {
@@ -8,23 +8,22 @@ pub fn iid() -> usize {
 }
 
 #[derive(Clone)]
-pub struct Instance {
+pub struct Instance<'a> {
+    pub sprite: Sprite<'a>,
     id: usize,
 }
 
-impl Instance {
+impl<'a> Instance<'a> {
+    pub fn new(sprite: Sprite<'a>) -> Self {
+        Self { sprite, id: iid() }
+    }
+
     pub fn get(&self) -> usize {
         self.id
     }
 }
 
-impl Default for Instance {
-    fn default() -> Self {
-        Self { id: iid() }
-    }
-}
-
-impl Component for Instance {
+impl Component for Instance<'_> {
     fn id() -> usize {
         cid!()
     }
