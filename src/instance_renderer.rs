@@ -1,8 +1,8 @@
-use crate::{Instance, InstanceData, INSTANCE_FRAGMENT_SRC, INSTANCE_VERTEX_SRC};
+use crate::{Instance, InstanceData, InstanceSprite, INSTANCE_FRAGMENT_SRC, INSTANCE_VERTEX_SRC};
 use hex::{
     anyhow,
     assets::Shader,
-    components::{Camera, Sprite, Transform},
+    components::{Camera, Transform},
     ecs::{
         system_manager::{Ev, System},
         world::World,
@@ -57,8 +57,8 @@ impl<'a> System<'a> for InstanceRenderer {
                                     i,
                                     world
                                         .cm
-                                        .get::<Sprite>(e, &world.em)
-                                        .and_then(|s| s.active.then_some(s))?,
+                                        .get::<InstanceSprite>(e, &world.em)
+                                        .and_then(|s| s.sprite().active.then_some(s))?,
                                     world
                                         .cm
                                         .get::<Transform>(e, &world.em)
@@ -72,7 +72,7 @@ impl<'a> System<'a> for InstanceRenderer {
 
                     let mut sprites: Vec<_> = sprites.into_values().collect();
 
-                    sprites.sort_by(|s1, s2| s1[0].0.z.total_cmp(&s2[0].0.z));
+                    sprites.sort_by(|s1, s2| s1[0].0.sprite().z.total_cmp(&s2[0].0.sprite().z));
 
                     sprites
                 };
@@ -85,11 +85,11 @@ impl<'a> System<'a> for InstanceRenderer {
                     let instance_data: Vec<_> = i
                         .iter()
                         .map(|(s, t)| {
-                            let color = s.color.into();
+                            let color = s.sprite().color.into();
                             let transform = t.matrix().into();
 
                             InstanceData {
-                                z: s.z,
+                                z: s.sprite().z,
                                 color,
                                 transform,
                             }
@@ -99,15 +99,18 @@ impl<'a> System<'a> for InstanceRenderer {
                     let uniform = uniform! {
                         camera_transform: camera_transform,
                         camera_view: camera_view,
-                        image: Sampler(&*s.texture.buffer, s.texture.sampler_behaviour),
+                        image: Sampler(&*s.sprite().texture.buffer, s.sprite().texture.sampler_behaviour),
                     };
 
                     target.draw(
-                        (&*s.shape.vertices, instance_buffer.per_instance().unwrap()),
-                        NoIndices(s.shape.format),
+                        (
+                            &*s.sprite().shape.vertices,
+                            instance_buffer.per_instance().unwrap(),
+                        ),
+                        NoIndices(s.sprite().shape.format),
                         &self.shader.program,
                         &uniform,
-                        &s.draw_parameters,
+                        &s.sprite().draw_parameters,
                     )?;
                 }
             }
