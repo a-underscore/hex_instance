@@ -7,6 +7,10 @@ impl<'a> InstanceSprite<'a> {
     pub fn sprite(&self) -> &Sprite<'a> {
         &self.0
     }
+
+    pub fn sprite_mut(&mut self) -> &mut Sprite<'a> {
+        &mut self.0
+    }
 }
 
 impl Component for InstanceSprite<'_> {
