@@ -1,8 +1,4 @@
-use crate::{
-    instance::Instance,
-    instance_data::InstanceData,
-    shaders::{INSTANCE_FRAGMENT_SRC, INSTANCE_VERTEX_SRC},
-};
+use crate::{Instance, InstanceData, INSTANCE_FRAGMENT_SRC, INSTANCE_VERTEX_SRC};
 use hex::{
     anyhow,
     assets::Shader,
@@ -74,9 +70,9 @@ impl<'a> System<'a> for InstanceRenderer {
                         }
                     }
 
-                    for i in sprites.values_mut() {
-                        i.sort_by(|(s1, _), (s2, _)| s1.z.total_cmp(&s2.z));
-                    }
+                    let mut sprites: Vec<_> = sprites.into_values().collect();
+
+                    sprites.sort_by(|s1, s2| s1[0].0.z.total_cmp(&s2[0].0.z));
 
                     sprites
                 };
@@ -84,7 +80,7 @@ impl<'a> System<'a> for InstanceRenderer {
                 let camera_view: [[f32; 4]; 4] = c.view().into();
                 let camera_transform: [[f32; 3]; 3] = ct.matrix().into();
 
-                for i in sprites.values() {
+                for i in sprites {
                     let (s, _) = i[0];
                     let instance_data: Vec<_> = i
                         .iter()
