@@ -5,9 +5,11 @@ in vec2 uv;
 in float z;
 in mat3 transform;
 in vec4 color;
+in float id;
 
 out vec2 tex_pos;
 out vec4 tex_color;
+out float tex_id;
 
 uniform mat3 camera_transform;
 uniform mat4 camera_view;
@@ -19,4 +21,5 @@ void main(void) {
 
 	tex_pos = uv;
 	tex_color = color;
+	tex_id = id;
 }

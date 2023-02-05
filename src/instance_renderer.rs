@@ -8,7 +8,11 @@ use hex::{
         world::World,
     },
     glium::{
-        index::NoIndices, uniform, uniforms::Sampler, Display, Program, Surface, VertexBuffer,
+        index::NoIndices,
+        texture::{RawImage2d, Texture2dArray},
+        uniform,
+        uniforms::MagnifySamplerFilter,
+        Display, Program, Surface, VertexBuffer,
     },
 };
 use std::{collections::BTreeMap, rc::Rc};
@@ -48,63 +52,77 @@ impl<'a> System<'a> for InstanceRenderer {
                 ))
             }) {
                 let sprites = {
-                    let mut sprites: BTreeMap<_, Vec<_>> = BTreeMap::new();
+                    let mut sprites: BTreeMap<_, (_, Vec<_>)> = BTreeMap::new();
 
                     for e in world.em.entities.keys().cloned() {
                         if let Some((i, t)) = world.cm.get::<Instance>(e, &world.em).and_then(|i| {
                             Some((
-                                i.sprite.active.then_some(i)?,
+                                i.active.then_some(i)?,
                                 world
                                     .cm
                                     .get::<Transform>(e, &world.em)
                                     .and_then(|t| t.active.then_some(t))?,
                             ))
                         }) {
-                            sprites.entry(i.get()).or_default().push((i, t));
+                            sprites
+                                .entry(i.get())
+                                .or_insert((i, Default::default()))
+                                .1
+                                .push((i, t));
                         }
                     }
 
-                    let mut sprites: Vec<_> = sprites.into_values().collect();
+                    let mut sprites: Vec<_> = sprites.into_iter().collect();
 
-                    sprites.sort_by(|s1, s2| s1[0].0.sprite.z.total_cmp(&s2[0].0.sprite.z));
+                    sprites.sort_by(|(_, (s1, _)), (_, (s2, _))| s1.z.total_cmp(&s2.z));
 
                     sprites
                 };
 
                 let camera_view: [[f32; 4]; 4] = c.view().into();
                 let camera_transform: [[f32; 3]; 3] = ct.matrix().into();
+                let (id_map, texture_data): (BTreeMap<_, _>, Vec<_>) = sprites
+                    .iter()
+                    .enumerate()
+                    .map(|(i, (id, (s, _)))| {
+                        let t = RawImage2d {
+                            data: s.texture.data.clone(),
+                            ..*s.texture
+                        };
 
-                for i in sprites {
-                    let (s, _) = i[0];
+                        ((id, i), t)
+                    })
+                    .unzip();
+                let texture = Texture2dArray::new(&world.display, texture_data)?;
+
+                for (id, (s, i)) in &sprites {
                     let instance_data: Vec<_> = i
                         .iter()
-                        .map(|(s, t)| {
-                            let color = s.sprite.color.into();
+                        .filter_map(|(s, t)| {
+                            let color = s.color.into();
                             let transform = t.matrix().into();
 
-                            InstanceData {
-                                z: s.sprite.z,
+                            Some(InstanceData {
+                                z: s.z,
                                 color,
                                 transform,
-                            }
+                                id: *id_map.get(id)? as f32,
+                            })
                         })
                         .collect();
                     let instance_buffer = VertexBuffer::dynamic(&world.display, &instance_data)?;
                     let uniform = uniform! {
                         camera_transform: camera_transform,
                         camera_view: camera_view,
-                        image: Sampler(&*s.sprite.texture.buffer, s.sprite.texture.sampler_behaviour),
+                        tex: texture.sampled().magnify_filter(MagnifySamplerFilter::Nearest),
                     };
 
                     target.draw(
-                        (
-                            &*s.sprite.shape.vertices,
-                            instance_buffer.per_instance().unwrap(),
-                        ),
-                        NoIndices(s.sprite.shape.format),
+                        (&*s.shape.vertices, instance_buffer.per_instance().unwrap()),
+                        NoIndices(s.shape.format),
                         &self.shader.program,
                         &uniform,
-                        &s.sprite.draw_parameters,
+                        &s.draw_parameters,
                     )?;
                 }
             }
