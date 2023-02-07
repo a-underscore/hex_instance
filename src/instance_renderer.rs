@@ -11,7 +11,7 @@ use hex::{
         index::NoIndices,
         texture::{RawImage2d, Texture2dArray},
         uniform,
-        uniforms::MagnifySamplerFilter,
+        uniforms::Sampler,
         Display, Program, Surface, VertexBuffer,
     },
 };
@@ -114,7 +114,7 @@ impl<'a> System<'a> for InstanceRenderer {
                     let uniform = uniform! {
                         camera_transform: camera_transform,
                         camera_view: camera_view,
-                        tex: texture.sampled().magnify_filter(MagnifySamplerFilter::Nearest),
+                        tex: Sampler(&texture, s.sampler_behaviour),
                     };
 
                     target.draw(
