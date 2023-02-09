@@ -64,11 +64,10 @@ impl<'a> System<'a> for InstanceRenderer {
                                     .and_then(|t| t.active.then_some(t))?,
                             ))
                         }) {
-                            sprites
-                                .entry(i.get())
-                                .or_insert((i, Default::default()))
-                                .1
-                                .push((i, t));
+                            let (_, ref mut group) =
+                                sprites.entry(i.get()).or_insert((i, Default::default()));
+
+                            group.push((i, t));
                         }
                     }
 
