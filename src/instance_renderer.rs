@@ -117,7 +117,12 @@ impl<'a> System<'a> for InstanceRenderer {
                     };
 
                     target.draw(
-                        (&*s.shape.vertices, instance_buffer.per_instance().unwrap()),
+                        (
+                            &*s.shape.vertices,
+                            instance_buffer
+                                .per_instance()
+                                .map_err(|e| anyhow::Error::msg(format!("{:?}", e)))?,
+                        ),
                         NoIndices(s.shape.format),
                         &self.shader.program,
                         &uniform,
