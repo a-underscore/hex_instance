@@ -121,7 +121,7 @@ impl<'a> System<'a> for InstanceRenderer {
                             &*s.shape.vertices,
                             instance_buffer
                                 .per_instance()
-                                .map_err(|e| anyhow::Error::msg(format!("{:?}", e)))?,
+                                .map_err(|e| anyhow::Error::msg(format!("{e:?}")))?,
                         ),
                         NoIndices(s.shape.format),
                         &self.shader.program,
