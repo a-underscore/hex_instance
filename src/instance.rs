@@ -2,14 +2,13 @@ use hex::{
     assets::Shape,
     cgmath::Vector4,
     cid,
-    ecs::component_manager::Component,
+    ecs::{component_manager::Component, id::id},
     glium::{
         draw_parameters::{Blend, DepthTest},
         texture::RawImage2d,
         uniforms::SamplerBehavior,
         Depth, DrawParameters,
     },
-    id::id,
 };
 use std::{rc::Rc, sync::atomic::AtomicUsize};
 
