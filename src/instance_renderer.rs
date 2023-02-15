@@ -95,7 +95,7 @@ impl<'a> System<'a> for InstanceRenderer {
                 let texture = Texture2dArray::new(&world.display, texture_data)?;
 
                 for (id, (s, i)) in &sprites {
-                    let instance_data: Vec<_> = i
+                    let mut instance_data: Vec<_> = i
                         .iter()
                         .filter_map(|(s, t)| {
                             let color = s.color.into();
@@ -109,6 +109,9 @@ impl<'a> System<'a> for InstanceRenderer {
                             })
                         })
                         .collect();
+
+                    instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
+
                     let instance_buffer = VertexBuffer::dynamic(&world.display, &instance_data)?;
                     let uniform = uniform! {
                         camera_transform: camera_transform,
