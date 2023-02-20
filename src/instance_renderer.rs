@@ -12,10 +12,10 @@ use hex::{
         texture::{RawImage2d, Texture2dArray},
         uniform,
         uniforms::Sampler,
-        Display, Program, Surface, VertexBuffer,
+        Display, Surface, VertexBuffer,
     },
 };
-use std::{collections::BTreeMap, rc::Rc};
+use std::collections::BTreeMap;
 
 pub struct InstanceRenderer {
     pub shader: Shader,
@@ -24,14 +24,7 @@ pub struct InstanceRenderer {
 impl InstanceRenderer {
     pub fn new(display: &Display) -> anyhow::Result<Self> {
         Ok(Self {
-            shader: Shader {
-                program: Rc::new(Program::from_source(
-                    display,
-                    INSTANCE_VERTEX_SRC,
-                    INSTANCE_FRAGMENT_SRC,
-                    None,
-                )?),
-            },
+            shader: Shader::new(display, INSTANCE_VERTEX_SRC, INSTANCE_FRAGMENT_SRC, None)?,
         })
     }
 }
@@ -95,22 +88,26 @@ impl<'a> System<'a> for InstanceRenderer {
                 let texture = Texture2dArray::new(&world.display, texture_data)?;
 
                 for (id, (s, i)) in &sprites {
-                    let mut instance_data: Vec<_> = i
-                        .iter()
-                        .filter_map(|(s, t)| {
-                            let color = s.color.into();
-                            let transform = t.matrix().into();
+                    let instance_data = {
+                        let mut instance_data: Vec<_> = i
+                            .iter()
+                            .filter_map(|(s, t)| {
+                                let color = s.color.into();
+                                let transform = t.matrix().into();
 
-                            Some(InstanceData {
-                                z: s.z,
-                                color,
-                                transform,
-                                id: *id_map.get(id)? as f32,
+                                Some(InstanceData {
+                                    z: s.z,
+                                    color,
+                                    transform,
+                                    id: *id_map.get(id)? as f32,
+                                })
                             })
-                        })
-                        .collect();
+                            .collect();
 
-                    instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
+                        instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
+
+                        instance_data
+                    };
 
                     let instance_buffer = VertexBuffer::dynamic(&world.display, &instance_data)?;
                     let uniform = uniform! {
