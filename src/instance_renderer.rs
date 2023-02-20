@@ -44,7 +44,8 @@ impl<'a> System<'a> for InstanceRenderer {
                         .and_then(|t| t.active.then_some(t))?,
                 ))
             }) {
-                let sprites = {
+                let (textures, sprites) = {
+                    let mut textures = BTreeMap::new();
                     let mut sprites: BTreeMap<_, (_, Vec<_>)> = BTreeMap::new();
 
                     for e in world.em.entities.keys().cloned() {
@@ -57,6 +58,8 @@ impl<'a> System<'a> for InstanceRenderer {
                                     .and_then(|t| t.active.then_some(t))?,
                             ))
                         }) {
+                            textures.entry(i.texture.get()).or_insert(i.texture.clone());
+
                             let (_, ref mut group) =
                                 sprites.entry(i.get()).or_insert((i, Default::default()));
 
@@ -64,30 +67,37 @@ impl<'a> System<'a> for InstanceRenderer {
                         }
                     }
 
-                    let mut sprites: Vec<_> = sprites.into_iter().collect();
+                    let mut sprites: Vec<_> = sprites.into_values().collect();
 
-                    sprites.sort_by(|(_, (s1, _)), (_, (s2, _))| s1.z.total_cmp(&s2.z));
+                    sprites.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
 
-                    sprites
+                    for (_, v) in &mut sprites {
+                        v.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
+                    }
+
+                    (textures, sprites)
                 };
 
                 let camera_view: [[f32; 4]; 4] = c.view().into();
                 let camera_transform: [[f32; 3]; 3] = ct.matrix().into();
-                let (id_map, texture_data): (BTreeMap<_, _>, Vec<_>) = sprites
-                    .iter()
+                let (id_map, texture_data): (BTreeMap<_, _>, Vec<_>) = textures
+                    .values()
                     .enumerate()
-                    .map(|(i, (id, (s, _)))| {
+                    .map(|(i, b)| {
                         let t = RawImage2d {
-                            data: s.texture.data.clone(),
-                            ..*s.texture
+                            data: b.buffer.data.clone(),
+                            ..*b.buffer
                         };
 
-                        ((id, i), t)
+                        ((b.get(), i), t)
                     })
                     .unzip();
+
+                println!("{:?} {:?}", id_map, texture_data.len());
+
                 let texture = Texture2dArray::new(&world.display, texture_data)?;
 
-                for (id, (s, i)) in &sprites {
+                for (s, i) in &sprites {
                     let instance_data = {
                         let mut instance_data: Vec<_> = i
                             .iter()
@@ -99,7 +109,7 @@ impl<'a> System<'a> for InstanceRenderer {
                                     z: s.z,
                                     color,
                                     transform,
-                                    id: *id_map.get(id)? as f32,
+                                    id: *id_map.get(&s.texture.get())? as f32,
                                 })
                             })
                             .collect();
