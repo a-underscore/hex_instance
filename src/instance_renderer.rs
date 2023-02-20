@@ -93,8 +93,6 @@ impl<'a> System<'a> for InstanceRenderer {
                     })
                     .unzip();
 
-                println!("{:?} {:?}", id_map, texture_data.len());
-
                 let texture = Texture2dArray::new(&world.display, texture_data)?;
 
                 for (s, i) in &sprites {
