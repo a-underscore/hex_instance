@@ -9,12 +9,11 @@ use hex::{
     ecs::{component_manager::Component, id},
     glium::{
         draw_parameters::{Blend, DepthTest},
-        texture::RawImage2d,
         uniforms::SamplerBehavior,
         Depth, DrawParameters,
     },
 };
-use std::{rc::Rc, sync::atomic::AtomicUsize};
+use std::sync::atomic::AtomicUsize;
 
 pub fn iid() -> usize {
     static COUNT: AtomicUsize = AtomicUsize::new(0);

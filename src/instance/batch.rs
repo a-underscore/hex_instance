@@ -1,15 +1,4 @@
-use hex::{
-    assets::Shape,
-    cgmath::Vector4,
-    cid,
-    ecs::{component_manager::Component, id},
-    glium::{
-        draw_parameters::{Blend, DepthTest},
-        texture::RawImage2d,
-        uniforms::SamplerBehavior,
-        Depth, DrawParameters,
-    },
-};
+use hex::{ecs::id, glium::texture::RawImage2d};
 use std::{rc::Rc, sync::atomic::AtomicUsize};
 
 pub fn bid() -> usize {
