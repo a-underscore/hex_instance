@@ -19,14 +19,12 @@ use std::collections::BTreeMap;
 
 pub struct InstanceRenderer {
     pub shader: Shader,
-    pub active: bool,
 }
 
 impl InstanceRenderer {
-    pub fn new(display: &Display, active: bool) -> anyhow::Result<Self> {
+    pub fn new(display: &Display) -> anyhow::Result<Self> {
         Ok(Self {
             shader: Shader::new(display, INSTANCE_VERTEX_SRC, INSTANCE_FRAGMENT_SRC, None)?,
-            active,
         })
     }
 }
