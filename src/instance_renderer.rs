@@ -8,6 +8,7 @@ use hex::{
         world::World,
     },
     glium::{
+        glutin::event::Event,
         index::NoIndices,
         texture::{RawImage2d, Texture2dArray},
         uniform,
@@ -31,7 +32,7 @@ impl InstanceRenderer {
 
 impl<'a> System<'a> for InstanceRenderer {
     fn update(&mut self, event: &mut Ev, world: &mut World<'a>) -> anyhow::Result<()> {
-        if let Ev::Draw((_, target)) = event {
+        if let Ev::Draw((Event::MainEventsCleared, target)) = event {
             if let Some((c, ct)) = world.em.entities.keys().cloned().find_map(|e| {
                 Some((
                     world
