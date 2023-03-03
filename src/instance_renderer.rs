@@ -4,7 +4,8 @@ use hex::{
     assets::Shader,
     components::{Camera, Transform},
     ecs::{
-        system_manager::{Ev, System},
+        ev::{Control, Ev},
+        system_manager::System,
         world::World,
     },
     glium::{
@@ -32,7 +33,14 @@ impl InstanceRenderer {
 
 impl<'a> System<'a> for InstanceRenderer {
     fn update(&mut self, event: &mut Ev, world: &mut World<'a>) -> anyhow::Result<()> {
-        if let Ev::Draw((Event::MainEventsCleared, target)) = event {
+        if let Ev::Draw((
+            Control {
+                event: Event::MainEventsCleared,
+                flow: _,
+            },
+            target,
+        )) = event
+        {
             if let Some((c, ct)) = world.em.entities.keys().cloned().find_map(|e| {
                 Some((
                     world
