@@ -68,7 +68,4 @@ impl<'a, 'b> Instance<'a, 'b> {
 }
 
 impl<'a, 'b> Component for Instance<'a, 'b> {
-    fn id() -> usize {
-        cid!()
-    }
 }
