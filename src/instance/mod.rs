@@ -5,7 +5,6 @@ pub use batch::Batch;
 use hex::{
     assets::Shape,
     cgmath::Vector4,
-    cid,
     ecs::{component_manager::Component, id},
     glium::{
         draw_parameters::{Blend, DepthTest},
