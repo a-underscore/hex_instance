@@ -6,12 +6,12 @@ use hex::{
     assets::Shape,
     cgmath::Vector4,
     cid,
-    ecs::component_manager::Component,
     glium::{
         draw_parameters::{Blend, DepthTest},
         uniforms::SamplerBehavior,
         Depth, DrawParameters,
     },
+    hecs::component_manager::Component,
     id,
 };
 use std::sync::atomic::AtomicUsize;

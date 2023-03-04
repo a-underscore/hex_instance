@@ -3,7 +3,6 @@ use hex::{
     anyhow,
     assets::Shader,
     components::{Camera, Transform},
-    ecs::{ev::Control, system_manager::System, Ev, World},
     glium::{
         glutin::event::Event,
         index::NoIndices,
@@ -12,6 +11,7 @@ use hex::{
         uniforms::Sampler,
         Display, Surface, VertexBuffer,
     },
+    hecs::{ev::Control, system_manager::System, Ev, World},
 };
 use std::collections::BTreeMap;
 
