@@ -5,12 +5,14 @@ pub use batch::Batch;
 use hex::{
     assets::Shape,
     cgmath::Vector4,
-    ecs::{component_manager::Component, id},
+    cid,
+    ecs::component_manager::Component,
     glium::{
         draw_parameters::{Blend, DepthTest},
         uniforms::SamplerBehavior,
         Depth, DrawParameters,
     },
+    id,
 };
 use std::sync::atomic::AtomicUsize;
 
@@ -66,4 +68,8 @@ impl<'a, 'b> Instance<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Component for Instance<'a, 'b> {}
+impl<'a, 'b> Component for Instance<'a, 'b> {
+    fn id() -> usize {
+        cid!()
+    }
+}

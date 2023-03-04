@@ -1,4 +1,4 @@
-use hex::{ecs::id, glium::texture::RawImage2d};
+use hex::{glium::texture::RawImage2d, id};
 use std::{rc::Rc, sync::atomic::AtomicUsize};
 
 pub fn bid() -> usize {
