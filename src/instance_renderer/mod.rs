@@ -1,4 +1,4 @@
-use crate::{Instance, InstanceData, INSTANCE_FRAGMENT_SRC, INSTANCE_VERTEX_SRC};
+use crate::{Instance, InstanceData};
 use hex::{
     anyhow,
     assets::Shader,
@@ -18,6 +18,9 @@ use hex::{
     },
 };
 use std::collections::BTreeMap;
+
+pub const INSTANCE_VERTEX_SRC: &str = include_str!("instance_vertex.glsl");
+pub const INSTANCE_FRAGMENT_SRC: &str = include_str!("instance_fragment.glsl");
 
 pub struct InstanceRenderer {
     pub shader: Shader,
