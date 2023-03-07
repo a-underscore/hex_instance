@@ -67,7 +67,10 @@ impl<'a> System<'a> for InstanceRenderer {
                             ))
                         }) {
                             textures.entry(i.texture.get()).or_insert(i.texture.clone());
-                            sprites.entry(i.get()).or_insert(vec![(i, t)]);
+                            sprites
+                                .entry(i.get())
+                                .or_insert(Default::default())
+                                .push((i, t));
                         }
                     }
 
