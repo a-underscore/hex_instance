@@ -76,13 +76,7 @@ impl<'a> System<'a> for InstanceRenderer {
                         .filter_map(|mut i| {
                             i.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
 
-                            Some((
-                                i.iter()
-                                    .cloned()
-                                    .map(|(i1, _)| i1)
-                                    .min_by(|i1, i2| i1.z.total_cmp(&i2.z))?,
-                                i,
-                            ))
+                            Some((i.first().map(|(i, _)| i.clone())?, i))
                         })
                         .collect();
 
