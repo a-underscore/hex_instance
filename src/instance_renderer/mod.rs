@@ -54,7 +54,7 @@ impl<'a> System<'a> for InstanceRenderer {
             }) {
                 let (textures, sprites) = {
                     let mut textures = BTreeMap::new();
-                    let mut sprites: BTreeMap<_, (_, Vec<_>)> = BTreeMap::new();
+                    let mut sprites: BTreeMap<_, Vec<_>> = BTreeMap::new();
 
                     for e in world.em.entities.keys().cloned() {
                         if let Some((i, t)) = world.cm.get::<Instance>(e, &world.em).and_then(|i| {
@@ -67,21 +67,26 @@ impl<'a> System<'a> for InstanceRenderer {
                             ))
                         }) {
                             textures.entry(i.texture.get()).or_insert(i.texture.clone());
-
-                            let (_, ref mut group) =
-                                sprites.entry(i.get()).or_insert((i, Default::default()));
-
-                            group.push((i, t));
+                            sprites.entry(i.get()).or_insert(vec![(i, t)]);
                         }
                     }
 
-                    let mut sprites: Vec<_> = sprites.into_values().collect();
+                    let mut sprites: Vec<_> = sprites
+                        .into_values()
+                        .filter_map(|mut i| {
+                            i.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
+
+                            Some((
+                                i.iter()
+                                    .cloned()
+                                    .map(|(i1, _)| i1)
+                                    .min_by(|i1, i2| i1.z.total_cmp(&i2.z))?,
+                                i,
+                            ))
+                        })
+                        .collect();
 
                     sprites.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
-
-                    for (_, v) in &mut sprites {
-                        v.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
-                    }
 
                     (textures, sprites)
                 };
@@ -103,7 +108,7 @@ impl<'a> System<'a> for InstanceRenderer {
 
                 let texture = Texture2dArray::new(&world.display, texture_data)?;
 
-                for (s, i) in &sprites {
+                for (s, i) in sprites {
                     let instance_data = {
                         let mut instance_data: Vec<_> = i
                             .iter()
