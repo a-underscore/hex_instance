@@ -70,7 +70,7 @@ impl<'a> System<'a> for InstanceRenderer {
                             sprites
                                 .entry(i.get())
                                 .or_insert(Default::default())
-                                .push((i, t));
+                                .push((i.clone(), t.clone()));
                         }
                     }
 
