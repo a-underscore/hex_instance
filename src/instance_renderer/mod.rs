@@ -80,7 +80,23 @@ impl<'a> System<'a> for InstanceRenderer {
                         .filter_map(|mut i| {
                             i.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
 
-                            Some((i.first().map(|(i, _)| i.clone())?, i))
+                            let mut instance_data: Vec<_> = i
+                                .iter()
+                                .map(|(s, t)| {
+                                    let color = s.color.into();
+                                    let transform = t.matrix().into();
+
+                                    InstanceData {
+                                        z: s.z,
+                                        color,
+                                        transform,
+                                    }
+                                })
+                                .collect();
+
+                            instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
+
+                            Some((i.first().map(|(i, _)| i.clone())?, instance_data))
                         })
                         .collect();
 
@@ -93,27 +109,7 @@ impl<'a> System<'a> for InstanceRenderer {
                 let camera_transform: [[f32; 3]; 3] = ct.matrix().into();
 
                 for (s, i) in sprites {
-                    let instance_data = {
-                        let mut instance_data: Vec<_> = i
-                            .iter()
-                            .filter_map(|(s, t)| {
-                                let color = s.color.into();
-                                let transform = t.matrix().into();
-
-                                Some(InstanceData {
-                                    z: s.z,
-                                    color,
-                                    transform,
-                                })
-                            })
-                            .collect();
-
-                        instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
-
-                        instance_data
-                    };
-
-                    let instance_buffer = VertexBuffer::dynamic(&world.display, &instance_data)?;
+                    let instance_buffer = VertexBuffer::dynamic(&world.display, &i)?;
                     let uniform = uniform! {
                         camera_transform: camera_transform,
                         camera_view: camera_view,
