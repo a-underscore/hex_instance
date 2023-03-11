@@ -52,28 +52,38 @@ impl<'a> System<'a> for InstanceRenderer {
                         .and_then(|t| t.active.then_some(t))?,
                 ))
             }) {
-                let (textures, sprites) = {
-                    let mut textures = BTreeMap::new();
-                    let mut sprites: BTreeMap<_, Vec<_>> = BTreeMap::new();
-
-                    for e in world.em.entities.keys().cloned() {
-                        if let Some((i, t)) = world.cm.get::<Instance>(e, &world.em).and_then(|i| {
+                let ((id_map, textures), sprites) = {
+                    let (textures, sprites) = world
+                        .em
+                        .entities
+                        .keys()
+                        .cloned()
+                        .filter_map(|e| {
                             Some((
-                                i.active.then_some(i)?,
+                                world
+                                    .cm
+                                    .get::<Instance>(e, &world.em)
+                                    .and_then(|i| i.active.then_some(i))?,
                                 world
                                     .cm
                                     .get::<Transform>(e, &world.em)
                                     .and_then(|t| t.active.then_some(t))?,
                             ))
-                        }) {
-                            textures.entry(i.texture.get()).or_insert(i.texture.clone());
-                            sprites
-                                .entry(i.get())
-                                .or_insert(Default::default())
-                                .push((i.clone(), t.clone()));
-                        }
-                    }
+                        })
+                        .fold(
+                            (BTreeMap::new(), BTreeMap::<_, Vec<_>>::new()),
+                            |(mut textures, mut sprites), (i, t)| {
+                                textures.entry(i.texture.get()).or_insert(i.texture.clone());
+                                sprites
+                                    .entry(i.get())
+                                    .or_insert(Vec::new())
+                                    .push((i.clone(), t.clone()));
 
+                                (textures, sprites)
+                            },
+                        );
+
+                    let textures: Vec<_> = textures.into_values().collect();
                     let mut sprites: Vec<_> = sprites
                         .into_values()
                         .filter_map(|mut i| {
@@ -85,25 +95,39 @@ impl<'a> System<'a> for InstanceRenderer {
 
                     sprites.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
 
-                    (textures, sprites)
+                    let (id_map, textures): (BTreeMap<_, _>, Vec<_>) = {
+                        let width = textures
+                            .iter()
+                            .map(|b| b.buffer.width)
+                            .max()
+                            .unwrap_or_default();
+                        let height = textures
+                            .iter()
+                            .map(|b| b.buffer.height)
+                            .max()
+                            .unwrap_or_default();
+
+                        textures
+                            .into_iter()
+                            .enumerate()
+                            .map(|(i, b)| {
+                                let mut data = b.buffer.data.to_vec();
+
+                                data.extend(vec![0; width as usize * height as usize - data.len()]);
+
+                                let t = RawImage2d::from_raw_rgb(data, (width, height));
+
+                                ((b.get(), i), t)
+                            })
+                            .unzip()
+                    };
+
+                    ((id_map, textures), sprites)
                 };
 
                 let camera_view: [[f32; 4]; 4] = c.view().into();
                 let camera_transform: [[f32; 3]; 3] = ct.matrix().into();
-                let (id_map, texture_data): (BTreeMap<_, _>, Vec<_>) = textures
-                    .values()
-                    .enumerate()
-                    .map(|(i, b)| {
-                        let t = RawImage2d {
-                            data: b.buffer.data.clone(),
-                            ..*b.buffer
-                        };
-
-                        ((b.get(), i), t)
-                    })
-                    .unzip();
-
-                let texture = Texture2dArray::new(&world.display, texture_data)?;
+                let texture = Texture2dArray::new(&world.display, textures)?;
 
                 for (s, i) in sprites {
                     let instance_data = {
