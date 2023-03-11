@@ -114,9 +114,13 @@ impl<'a> System<'a> for InstanceRenderer {
                                 let mut data = b.buffer.data.to_vec();
 
                                 data.extend(
-                                    vec![vec![0, 0, 0, 0]; width as usize * height as usize]
-                                        .into_iter()
-                                        .flatten(),
+                                    vec![
+                                        vec![0; b.buffer.format.get_size()];
+                                        (width - b.buffer.width) as usize
+                                            * (height - b.buffer.height) as usize
+                                    ]
+                                    .into_iter()
+                                    .flatten(),
                                 );
 
                                 let t = RawImage2d::from_raw_rgb(data, (width, height));
