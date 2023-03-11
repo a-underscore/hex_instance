@@ -4,12 +4,8 @@ use hex::{
     assets::Shader,
     components::{Camera, Transform},
     glium::{
-        glutin::event::Event,
-        index::NoIndices,
-        texture::{RawImage2d, Texture2dArray},
-        uniform,
-        uniforms::Sampler,
-        Display, Surface, VertexBuffer,
+        glutin::event::Event, index::NoIndices, uniform, uniforms::Sampler, Display, Surface,
+        VertexBuffer,
     },
     hecs::{ev::Control, system_manager::System, Ev, World},
 };
@@ -52,8 +48,8 @@ impl<'a> System<'a> for InstanceRenderer {
                         .and_then(|t| t.active.then_some(t))?,
                 ))
             }) {
-                let ((id_map, textures), sprites) = {
-                    let (textures, sprites) = world
+                let sprites = {
+                    let sprites = world
                         .em
                         .entities
                         .keys()
@@ -70,20 +66,15 @@ impl<'a> System<'a> for InstanceRenderer {
                                     .and_then(|t| t.active.then_some(t))?,
                             ))
                         })
-                        .fold(
-                            (BTreeMap::new(), BTreeMap::<_, Vec<_>>::new()),
-                            |(mut textures, mut sprites), (i, t)| {
-                                textures.entry(i.texture.get()).or_insert(i.texture.clone());
-                                sprites
-                                    .entry(i.get())
-                                    .or_insert(Vec::new())
-                                    .push((i.clone(), t.clone()));
+                        .fold(BTreeMap::<_, Vec<_>>::new(), |mut sprites, (i, t)| {
+                            sprites
+                                .entry(i.get())
+                                .or_insert(Vec::new())
+                                .push((i.clone(), t.clone()));
 
-                                (textures, sprites)
-                            },
-                        );
+                            sprites
+                        });
 
-                    let textures: Vec<_> = textures.into_values().collect();
                     let mut sprites: Vec<_> = sprites
                         .into_values()
                         .filter_map(|mut i| {
@@ -95,47 +86,11 @@ impl<'a> System<'a> for InstanceRenderer {
 
                     sprites.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
 
-                    let (id_map, textures): (BTreeMap<_, _>, Vec<_>) = {
-                        let width = textures
-                            .iter()
-                            .map(|b| b.buffer.width)
-                            .max()
-                            .unwrap_or_default();
-                        let height = textures
-                            .iter()
-                            .map(|b| b.buffer.height)
-                            .max()
-                            .unwrap_or_default();
-
-                        textures
-                            .into_iter()
-                            .enumerate()
-                            .map(|(i, b)| {
-                                let mut data = b.buffer.data.to_vec();
-
-                                data.extend(
-                                    vec![
-                                        vec![0; b.buffer.format.get_size()];
-                                        (width - b.buffer.width) as usize
-                                            * (height - b.buffer.height) as usize
-                                    ]
-                                    .into_iter()
-                                    .flatten(),
-                                );
-
-                                let t = RawImage2d::from_raw_rgb(data, (width, height));
-
-                                ((b.get(), i), t)
-                            })
-                            .unzip()
-                    };
-
-                    ((id_map, textures), sprites)
+                    sprites
                 };
 
                 let camera_view: [[f32; 4]; 4] = c.view().into();
                 let camera_transform: [[f32; 3]; 3] = ct.matrix().into();
-                let texture = Texture2dArray::new(&world.display, textures)?;
 
                 for (s, i) in sprites {
                     let instance_data = {
@@ -149,7 +104,6 @@ impl<'a> System<'a> for InstanceRenderer {
                                     z: s.z,
                                     color,
                                     transform,
-                                    id: *id_map.get(&s.texture.get())? as f32,
                                 })
                             })
                             .collect();
@@ -163,7 +117,7 @@ impl<'a> System<'a> for InstanceRenderer {
                     let uniform = uniform! {
                         camera_transform: camera_transform,
                         camera_view: camera_view,
-                        tex: Sampler(&texture, s.sampler_behaviour),
+                        tex: Sampler(&*s.texture.buffer, s.texture.sampler_behaviour),
                     };
 
                     target.draw(

@@ -1,14 +1,9 @@
-pub mod batch;
-
-pub use batch::Batch;
-
 use hex::{
-    assets::Shape,
+    assets::{Shape, Texture},
     cgmath::Vector4,
     cid,
     glium::{
         draw_parameters::{Blend, DepthTest},
-        uniforms::SamplerBehavior,
         Depth, DrawParameters,
     },
     hecs::component_manager::Component,
@@ -23,26 +18,18 @@ pub fn iid() -> usize {
 }
 
 #[derive(Clone)]
-pub struct Instance<'a, 'b> {
+pub struct Instance<'a> {
     pub draw_parameters: DrawParameters<'a>,
     pub shape: Shape,
-    pub texture: Batch<'b>,
-    pub sampler_behaviour: SamplerBehavior,
+    pub texture: Texture,
     pub color: Vector4<f32>,
     pub z: f32,
     pub active: bool,
     id: usize,
 }
 
-impl<'a, 'b> Instance<'a, 'b> {
-    pub fn new(
-        shape: Shape,
-        texture: Batch<'b>,
-        sampler_behaviour: SamplerBehavior,
-        color: Vector4<f32>,
-        z: f32,
-        active: bool,
-    ) -> Self {
+impl<'a> Instance<'a> {
+    pub fn new(shape: Shape, texture: Texture, color: Vector4<f32>, z: f32, active: bool) -> Self {
         Self {
             draw_parameters: DrawParameters {
                 depth: Depth {
@@ -55,7 +42,6 @@ impl<'a, 'b> Instance<'a, 'b> {
             },
             shape,
             texture,
-            sampler_behaviour,
             color,
             z,
             active,
@@ -68,7 +54,7 @@ impl<'a, 'b> Instance<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Component for Instance<'a, 'b> {
+impl<'a> Component for Instance<'a> {
     fn id() -> usize {
         cid!()
     }

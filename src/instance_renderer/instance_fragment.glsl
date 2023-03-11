@@ -16,8 +16,8 @@ in float tex_id;
 
 out vec4 frag_color;
 
-uniform sampler2DArray tex;
+uniform sampler2D tex;
 
 void main(void) {
-	frag_color = texture(tex, vec3(tex_pos, tex_id)) * tex_color;
+	frag_color = texture(tex, tex_pos) * tex_color;
 }
