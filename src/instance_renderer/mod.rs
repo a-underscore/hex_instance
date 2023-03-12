@@ -104,14 +104,11 @@ impl<'a> System<'a> for InstanceRenderer {
                     sprites
                 };
 
-                let camera_view: [[f32; 4]; 4] = c.view().0;
-                let camera_transform: [[f32; 3]; 3] = ct.matrix().0;
-
                 for (s, i) in sprites {
                     let instance_buffer = VertexBuffer::dynamic(&world.display, &i)?;
                     let uniform = uniform! {
-                        camera_transform: camera_transform,
-                        camera_view: camera_view,
+                        camera_transform: ct.matrix().0,
+                        camera_view: c.view().0,
                         tex: Sampler(&*s.texture.buffer, s.texture.sampler_behaviour),
                     };
 
