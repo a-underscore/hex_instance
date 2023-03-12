@@ -83,8 +83,8 @@ impl<'a> System<'a> for InstanceRenderer {
                             let mut instance_data: Vec<_> = i
                                 .iter()
                                 .map(|(s, t)| {
-                                    let color = s.color.into();
-                                    let transform = t.matrix().into();
+                                    let color = s.color;
+                                    let transform = t.matrix().0;
 
                                     InstanceData {
                                         z: s.z,
@@ -105,8 +105,8 @@ impl<'a> System<'a> for InstanceRenderer {
                     sprites
                 };
 
-                let camera_view: [[f32; 4]; 4] = c.view().into();
-                let camera_transform: [[f32; 3]; 3] = ct.matrix().into();
+                let camera_view: [[f32; 4]; 4] = c.view().0;
+                let camera_transform: [[f32; 3]; 3] = ct.matrix().0;
 
                 for (s, i) in sprites {
                     let instance_buffer = VertexBuffer::dynamic(&world.display, &i)?;
