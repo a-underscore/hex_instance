@@ -82,14 +82,10 @@ impl<'a> System<'a> for InstanceRenderer {
 
                             let mut instance_data: Vec<_> = i
                                 .iter()
-                                .map(|(s, t)| {
-                                    let transform = t.matrix().0;
-
-                                    InstanceData {
-                                        z: s.z,
-                                        color: s.color,
-                                        transform,
-                                    }
+                                .map(|(s, t)| InstanceData {
+                                    z: s.z,
+                                    color: s.color,
+                                    transform: t.matrix().0,
                                 })
                                 .collect();
 
