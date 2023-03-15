@@ -7,19 +7,19 @@ use hex::{
         Depth, DrawParameters,
     },
 };
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Instance<'a> {
     pub draw_parameters: DrawParameters<'a>,
-    pub texture: Texture,
+    pub texture: Rc<Texture>,
     pub color: [f32; 4],
     pub z: f32,
-    pub id: usize,
     pub active: bool,
 }
 
 impl<'a> Instance<'a> {
-    pub fn new(texture: Texture, color: [f32; 4], z: f32, id: usize, active: bool) -> Self {
+    pub fn new(texture: Rc<Texture>, color: [f32; 4], z: f32, active: bool) -> Self {
         Self {
             draw_parameters: DrawParameters {
                 depth: Depth {
@@ -33,7 +33,6 @@ impl<'a> Instance<'a> {
             texture,
             color,
             z,
-            id,
             active,
         }
     }
