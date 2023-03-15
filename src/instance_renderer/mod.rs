@@ -9,7 +9,7 @@ use hex::{
         VertexBuffer,
     },
 };
-use std::{collections::BTreeMap, rc::Rc};
+use std::collections::BTreeMap;
 
 pub const INSTANCE_VERTEX_SRC: &str = include_str!("instance_vertex.glsl");
 pub const INSTANCE_FRAGMENT_SRC: &str = include_str!("instance_fragment.glsl");
@@ -70,7 +70,7 @@ impl<'a> System<'a> for InstanceRenderer {
                         })
                         .fold(BTreeMap::<_, Vec<_>>::new(), |mut sprites, (i, t)| {
                             sprites
-                                .entry(Rc::as_ptr(&i.texture.buffer))
+                                .entry(i.id)
                                 .or_insert(Vec::new())
                                 .push((i.clone(), t.clone()));
 
