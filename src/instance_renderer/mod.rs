@@ -1,7 +1,7 @@
 use crate::{Instance, InstanceData};
 use hex::{
     anyhow,
-    assets::Shader,
+    assets::{Shader, Shape},
     components::{Camera, Transform},
     ecs::{ev::Control, system_manager::System, Ev, World},
     glium::{
@@ -9,19 +9,21 @@ use hex::{
         VertexBuffer,
     },
 };
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, rc::Rc};
 
 pub const INSTANCE_VERTEX_SRC: &str = include_str!("instance_vertex.glsl");
 pub const INSTANCE_FRAGMENT_SRC: &str = include_str!("instance_fragment.glsl");
 
 pub struct InstanceRenderer {
     pub shader: Shader,
+    pub shape: Shape,
 }
 
 impl InstanceRenderer {
-    pub fn new(display: &Display) -> anyhow::Result<Self> {
+    pub fn new(display: &Display, shape: Shape) -> anyhow::Result<Self> {
         Ok(Self {
             shader: Shader::new(display, INSTANCE_VERTEX_SRC, INSTANCE_FRAGMENT_SRC, None)?,
+            shape,
         })
     }
 }
@@ -68,7 +70,7 @@ impl<'a> System<'a> for InstanceRenderer {
                         })
                         .fold(BTreeMap::<_, Vec<_>>::new(), |mut sprites, (i, t)| {
                             sprites
-                                .entry(i.get())
+                                .entry(Rc::as_ptr(&i.texture.buffer))
                                 .or_insert(Vec::new())
                                 .push((i.clone(), t.clone()));
 
@@ -77,11 +79,10 @@ impl<'a> System<'a> for InstanceRenderer {
 
                     let mut sprites: Vec<_> = sprites
                         .into_values()
-                        .filter_map(|mut i| {
-                            i.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
-
+                        .filter_map(|i| {
+                            let s = i.first().map(|(i, _)| i.clone())?;
                             let mut instance_data: Vec<_> = i
-                                .iter()
+                                .into_iter()
                                 .map(|(s, t)| InstanceData {
                                     z: s.z,
                                     color: s.color,
@@ -91,7 +92,7 @@ impl<'a> System<'a> for InstanceRenderer {
 
                             instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
 
-                            Some((i.first().map(|(i, _)| i.clone())?, instance_data))
+                            Some((s, instance_data))
                         })
                         .collect();
 
@@ -110,12 +111,12 @@ impl<'a> System<'a> for InstanceRenderer {
 
                     target.draw(
                         (
-                            &*s.shape.vertices,
+                            &*self.shape.vertices,
                             instance_buffer
                                 .per_instance()
                                 .map_err(|e| anyhow::Error::msg(format!("{e:?}")))?,
                         ),
-                        NoIndices(s.shape.format),
+                        NoIndices(self.shape.format),
                         &self.shader.program,
                         &uniform,
                         &s.draw_parameters,
