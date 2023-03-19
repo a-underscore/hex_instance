@@ -5,8 +5,12 @@ use hex::{
     components::{Camera, Transform},
     ecs::{ev::Control, system_manager::System, Ev, World},
     glium::{
-        glutin::event::Event, index::NoIndices, uniform, uniforms::Sampler, Display, Surface,
-        VertexBuffer,
+        draw_parameters::{Blend, DepthTest},
+        glutin::event::Event,
+        index::NoIndices,
+        uniform,
+        uniforms::Sampler,
+        Depth, Display, DrawParameters, Surface, VertexBuffer,
     },
 };
 use std::{collections::BTreeMap, rc::Rc};
@@ -14,21 +18,34 @@ use std::{collections::BTreeMap, rc::Rc};
 pub const INSTANCE_VERTEX_SRC: &str = include_str!("instance_vertex.glsl");
 pub const INSTANCE_FRAGMENT_SRC: &str = include_str!("instance_fragment.glsl");
 
-pub struct InstanceRenderer {
+pub struct InstanceRenderer<'a> {
+    pub draw_parameters: DrawParameters<'a>,
     pub shader: Shader,
     pub shape: Shape,
 }
 
-impl InstanceRenderer {
+impl InstanceRenderer<'_> {
     pub fn new(display: &Display, shape: Shape) -> anyhow::Result<Self> {
         Ok(Self {
             shader: Shader::new(display, INSTANCE_VERTEX_SRC, INSTANCE_FRAGMENT_SRC, None)?,
+            draw_parameters: DrawParameters {
+                depth: Depth {
+                    test: DepthTest::IfLess,
+                    write: true,
+                    ..Default::default()
+                },
+                blend: Blend::alpha_blending(),
+                ..Default::default()
+            },
             shape,
         })
     }
 }
 
-impl<'a> System<'a> for InstanceRenderer {
+impl<'a, 'b> System<'a> for InstanceRenderer<'b>
+where
+    'b: 'a,
+{
     fn update(&mut self, event: &mut Ev, world: &mut World<'a>) -> anyhow::Result<()> {
         if let Ev::Draw((
             Control {
@@ -119,7 +136,7 @@ impl<'a> System<'a> for InstanceRenderer {
                         NoIndices(self.shape.format),
                         &self.shader.program,
                         &uniform,
-                        &s.draw_parameters,
+                        &self.draw_parameters,
                     )?;
                 }
             }
