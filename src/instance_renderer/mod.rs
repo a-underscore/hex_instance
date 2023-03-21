@@ -95,7 +95,7 @@ where
                             sprites
                         });
 
-                    let sprites: Vec<_> = sprites
+                    let mut sprites: Vec<_> = sprites
                         .into_values()
                         .filter_map(|(t, i)| {
                             let mut instance_data: Vec<_> = i
@@ -109,14 +109,16 @@ where
 
                             instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
 
-                            Some((t, instance_data))
+                            Some((t, instance_data.first()?.z, instance_data))
                         })
                         .collect();
+
+                    sprites.sort_by(|(_, z1, _), (_, z2, _)| z1.total_cmp(&z2));
 
                     sprites
                 };
 
-                for (t, i) in sprites {
+                for (t, _, i) in sprites {
                     let instance_buffer = VertexBuffer::dynamic(&world.display, &i)?;
                     let uniform = uniform! {
                         camera_transform: ct.matrix().0,
