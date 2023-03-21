@@ -113,7 +113,7 @@ where
                         })
                         .collect();
 
-                    sprites.sort_by(|(_, z1, _), (_, z2, _)| z1.total_cmp(&z2));
+                    sprites.sort_by(|(_, z1, _), (_, z2, _)| z1.total_cmp(z2));
 
                     sprites
                 };
