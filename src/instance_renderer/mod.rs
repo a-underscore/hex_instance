@@ -85,19 +85,19 @@ where
                                     .and_then(|t| t.active.then_some(t))?,
                             ))
                         })
-                        .fold(BTreeMap::<_, Vec<_>>::new(), |mut sprites, (i, t)| {
-                            sprites
+                        .fold(BTreeMap::<_, (_, Vec<_>)>::new(), |mut sprites, (i, t)| {
+                            let (_, instances) = sprites
                                 .entry(Rc::as_ptr(&i.texture))
-                                .or_insert(Vec::new())
-                                .push((i.clone(), t.clone()));
+                                .or_insert((i.texture.clone(), Vec::new()));
+
+                            instances.push((i.clone(), t.clone()));
 
                             sprites
                         });
 
-                    let mut sprites: Vec<_> = sprites
+                    let sprites: Vec<_> = sprites
                         .into_values()
-                        .filter_map(|i| {
-                            let s = i.first().map(|(i, _)| i.clone())?;
+                        .filter_map(|(t, i)| {
                             let mut instance_data: Vec<_> = i
                                 .into_iter()
                                 .map(|(s, t)| InstanceData {
@@ -109,21 +109,19 @@ where
 
                             instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
 
-                            Some((s, instance_data))
+                            Some((t, instance_data))
                         })
                         .collect();
-
-                    sprites.sort_by(|(i1, _), (i2, _)| i1.z.total_cmp(&i2.z));
 
                     sprites
                 };
 
-                for (s, i) in sprites {
+                for (t, i) in sprites {
                     let instance_buffer = VertexBuffer::dynamic(&world.display, &i)?;
                     let uniform = uniform! {
                         camera_transform: ct.matrix().0,
                         camera_view: c.view().0,
-                        tex: Sampler(&*s.texture.buffer, s.texture.sampler_behaviour),
+                        tex: Sampler(&*t.buffer, t.sampler_behaviour),
                     };
 
                     target.draw(
