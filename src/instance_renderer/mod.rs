@@ -109,8 +109,6 @@ where
 
                             instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
 
-                            println!("{:?}", instance_data.first().map(|i| i.z));
-
                             Some((t, instance_data.first()?.z, instance_data))
                         })
                         .collect();
