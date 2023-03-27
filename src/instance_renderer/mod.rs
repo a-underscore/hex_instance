@@ -46,7 +46,7 @@ impl<'a, 'b> System<'a> for InstanceRenderer<'b>
 where
     'b: 'a,
 {
-    fn update(&mut self, event: &mut Ev, world: &mut World<'a>) -> anyhow::Result<()> {
+    fn update(&mut self, event: &mut Ev, world: &mut World) -> anyhow::Result<()> {
         if let Ev::Draw((
             Control {
                 event: Event::MainEventsCleared,
