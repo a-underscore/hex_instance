@@ -15,9 +15,6 @@ use hex::{
 };
 use std::{collections::BTreeMap, rc::Rc};
 
-pub const INSTANCE_VERTEX_SRC: &str = include_str!("instance_vertex.glsl");
-pub const INSTANCE_FRAGMENT_SRC: &str = include_str!("instance_fragment.glsl");
-
 pub struct InstanceRenderer<'a> {
     pub draw_parameters: DrawParameters<'a>,
     pub shader: Shader,
@@ -27,7 +24,12 @@ pub struct InstanceRenderer<'a> {
 impl InstanceRenderer<'_> {
     pub fn new(display: &Display, shape: Shape) -> anyhow::Result<Self> {
         Ok(Self {
-            shader: Shader::new(display, INSTANCE_VERTEX_SRC, INSTANCE_FRAGMENT_SRC, None)?,
+            shader: Shader::new(
+                display,
+                include_str!("instance_vertex.glsl"),
+                include_str!("instance_fragment.glsl"),
+                None,
+            )?,
             draw_parameters: DrawParameters {
                 depth: Depth {
                     test: DepthTest::IfLessOrEqual,
