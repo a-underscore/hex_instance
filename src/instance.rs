@@ -1,7 +1,7 @@
 use hex::{
     assets::Texture,
-    cid,
     ecs::{component_manager::Component, Id},
+    id,
 };
 use std::rc::Rc;
 
@@ -26,6 +26,6 @@ impl Instance {
 
 impl Component for Instance {
     fn id() -> Id {
-        cid!()
+        id!()
     }
 }
