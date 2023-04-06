@@ -3,10 +3,9 @@ use hex::{
     anyhow,
     assets::{Shader, Shape},
     components::{Camera, Transform},
-    ecs::{ev::Control, system_manager::System, Ev, Scene, World},
+    ecs::{system_manager::System, Ev, Scene, World},
     glium::{
         draw_parameters::{Blend, DepthTest},
-        glutin::event::Event,
         index::NoIndices,
         uniform,
         uniforms::Sampler,
@@ -54,14 +53,7 @@ where
         scene: &mut Scene,
         world: &mut World,
     ) -> anyhow::Result<()> {
-        if let Ev::Draw((
-            Control {
-                event: Event::MainEventsCleared,
-                flow: _,
-            },
-            target,
-        )) = event
-        {
+        if let Ev::Draw((_, target)) = event {
             if let Some((c, ct)) = world.em.entities.keys().cloned().find_map(|e| {
                 Some((
                     world
