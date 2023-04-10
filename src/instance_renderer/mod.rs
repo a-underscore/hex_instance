@@ -3,7 +3,7 @@ use hex::{
     anyhow,
     assets::{Shader, Shape},
     components::{Camera, Transform},
-    ecs::{system_manager::System, Ev, Scene, World},
+    ecs::{system_manager::System, ComponentManager, EntityManager, Ev, Scene},
     glium::{
         draw_parameters::{Blend, DepthTest},
         index::NoIndices,
@@ -51,36 +51,27 @@ where
         &mut self,
         event: &mut Ev,
         scene: &mut Scene,
-        world: &mut World,
+        (em, cm): (&mut EntityManager, &mut ComponentManager),
     ) -> anyhow::Result<()> {
         if let Ev::Draw((_, target)) = event {
-            if let Some((c, ct)) = world.em.entities.keys().cloned().find_map(|e| {
+            if let Some((c, ct)) = em.entities.keys().cloned().find_map(|e| {
                 Some((
-                    world
-                        .cm
-                        .get::<Camera>(e, &world.em)
+                    cm.get::<Camera>(e, &em)
                         .and_then(|c| c.active.then_some(c))?,
-                    world
-                        .cm
-                        .get::<Transform>(e, &world.em)
+                    cm.get::<Transform>(e, &em)
                         .and_then(|t| t.active.then_some(t))?,
                 ))
             }) {
                 let sprites = {
-                    let sprites = world
-                        .em
+                    let sprites = em
                         .entities
                         .keys()
                         .cloned()
                         .filter_map(|e| {
                             Some((
-                                world
-                                    .cm
-                                    .get::<Instance>(e, &world.em)
+                                cm.get::<Instance>(e, &em)
                                     .and_then(|i| i.active.then_some(i))?,
-                                world
-                                    .cm
-                                    .get::<Transform>(e, &world.em)
+                                cm.get::<Transform>(e, &em)
                                     .and_then(|t| t.active.then_some(t))?,
                             ))
                         })
