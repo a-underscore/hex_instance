@@ -88,7 +88,7 @@ where
                     let mut sprites: Vec<_> = sprites
                         .into_values()
                         .filter_map(|(t, i)| {
-                            let mut instance_data: Vec<_> = i
+                            let instance_data: Vec<_> = i
                                 .into_iter()
                                 .map(|(s, t)| InstanceData {
                                     z: s.z,
@@ -97,9 +97,14 @@ where
                                 })
                                 .collect();
 
-                            instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
-
-                            Some((t, instance_data.first()?.z, instance_data))
+                            Some((
+                                t,
+                                instance_data
+                                    .iter()
+                                    .min_by(|i1, i2| i1.z.total_cmp(&i2.z))
+                                    .map(|i| i.z)?,
+                                instance_data,
+                            ))
                         })
                         .collect();
 
