@@ -98,22 +98,22 @@ where
                                 .collect();
 
                             Some((
-                                t,
                                 instance_data
                                     .iter()
-                                    .min_by(|i1, i2| i1.z.total_cmp(&i2.z))
-                                    .map(|i| i.z)?,
+                                    .cloned()
+                                    .min_by(|i1, i2| i1.z.total_cmp(&i2.z))?,
                                 instance_data,
+                                t,
                             ))
                         })
                         .collect();
 
-                    sprites.sort_by(|(_, z1, _), (_, z2, _)| z1.total_cmp(z2));
+                    sprites.sort_by(|(i1, _, _), (i2, _, _)| i1.z.total_cmp(&i2.z));
 
                     sprites
                 };
 
-                for (t, _, i) in sprites {
+                for (_, i, t) in sprites {
                     let instance_buffer = VertexBuffer::dynamic(&scene.display, &i)?;
                     let uniform = uniform! {
                         camera_transform: ct.matrix().0,
