@@ -2,7 +2,6 @@
 
 in vec2 tex_pos;
 in vec4 tex_color;
-in float tex_id;
 
 out vec4 frag_color;
 

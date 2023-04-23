@@ -8,7 +8,6 @@ in vec4 color;
 
 out vec2 tex_pos;
 out vec4 tex_color;
-out float tex_id;
 
 uniform mat3 camera_transform;
 uniform mat4 camera_view;
