@@ -19,5 +19,4 @@ void main(void) {
 
 	tex_pos = uv;
 	tex_color = color;
-	tex_id = id;
 }
