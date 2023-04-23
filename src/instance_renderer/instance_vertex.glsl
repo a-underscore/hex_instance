@@ -5,7 +5,6 @@ in vec2 uv;
 in float z;
 in mat3 transform;
 in vec4 color;
-in float id;
 
 out vec2 tex_pos;
 out vec4 tex_color;
