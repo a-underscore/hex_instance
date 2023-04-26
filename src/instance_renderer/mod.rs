@@ -15,9 +15,10 @@ use hex::{
 use std::{collections::BTreeMap, rc::Rc};
 
 pub struct InstanceRenderer<'a> {
-    pub draw_parameters: DrawParameters<'a>,
     pub shader: Shader,
     pub shape: Shape,
+    pub draw_parameters: DrawParameters<'a>,
+    pub model: Model,
 }
 
 impl InstanceRenderer<'_> {
@@ -117,7 +118,7 @@ where
                     let instance_buffer = VertexBuffer::dynamic(&scene.display, &i)?;
                     let uniform = uniform! {
                         camera_transform: ct.matrix().0,
-                        camera_view: c.view().0,
+                        camera_proj: c.proj().0,
                         tex: Sampler(&*t.buffer, t.sampler_behaviour),
                     };
 
