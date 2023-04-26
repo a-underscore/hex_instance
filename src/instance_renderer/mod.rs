@@ -16,9 +16,8 @@ use std::{collections::BTreeMap, rc::Rc};
 
 pub struct InstanceRenderer<'a> {
     pub shader: Shader,
-    pub shape: Shape,
     pub draw_parameters: DrawParameters<'a>,
-    pub model: Model,
+    pub shape: Shape,
 }
 
 impl InstanceRenderer<'_> {
