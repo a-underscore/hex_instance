@@ -14,9 +14,9 @@ pub struct Instance {
 }
 
 impl Instance {
-    pub fn new(texture: Rc<Texture>, color: [f32; 4], z: f32, active: bool) -> Self {
+    pub fn new(texture: Texture, color: [f32; 4], z: f32, active: bool) -> Self {
         Self {
-            texture,
+            texture: Rc::new(texture),
             color,
             z,
             active,
