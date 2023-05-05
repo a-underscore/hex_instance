@@ -1,7 +1,7 @@
 [package]
 name = "hex_instance"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-hex = { git = "https://github.com/a-underscore/hex", version = "0.1.0" }
+hex = { git = "https://github.com/a-underscore/hex", version = "0.2.0" }
