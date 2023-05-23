@@ -11,8 +11,9 @@ use hex::{
         uniforms::Sampler,
         Depth, Display, DrawParameters, Surface, VertexBuffer,
     },
+    hashbrown::HashMap,
 };
-use std::{collections::BTreeMap, rc::Rc};
+use std::rc::Rc;
 
 pub struct InstanceRenderer<'a> {
     pub shader: Shader,
@@ -75,7 +76,7 @@ where
                                     .and_then(|t| t.active.then_some(t))?,
                             ))
                         })
-                        .fold(BTreeMap::<_, (_, Vec<_>)>::new(), |mut sprites, (i, t)| {
+                        .fold(HashMap::<_, (_, Vec<_>)>::new(), |mut sprites, (i, t)| {
                             let (_, instances) = sprites
                                 .entry(Rc::as_ptr(&i.texture))
                                 .or_insert((i.texture.clone(), Vec::new()));
