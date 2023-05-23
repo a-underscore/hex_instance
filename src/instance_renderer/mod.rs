@@ -11,9 +11,8 @@ use hex::{
         uniforms::Sampler,
         Depth, Display, DrawParameters, Surface, VertexBuffer,
     },
-    hashbrown::HashMap,
 };
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 
 pub struct InstanceRenderer<'a> {
     pub shader: Shader,
