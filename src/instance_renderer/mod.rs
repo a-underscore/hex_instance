@@ -3,7 +3,7 @@ use hex::{
     anyhow,
     assets::{Shader, Shape},
     components::{Camera, Transform},
-    ecs::{system_manager::System, ComponentManager, EntityManager, Ev, Context},
+    ecs::{system_manager::System, ComponentManager, Context, EntityManager, Ev},
     glium::{
         draw_parameters::{Blend, DepthTest},
         index::NoIndices,
