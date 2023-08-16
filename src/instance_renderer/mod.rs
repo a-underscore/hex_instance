@@ -3,7 +3,7 @@ use hex::{
     anyhow,
     assets::{Shader, Shape},
     components::{Camera, Transform},
-    ecs::{system_manager::System, ComponentManager, EntityManager, Ev, Scene},
+    ecs::{system_manager::System, ComponentManager, EntityManager, Ev, Context},
     glium::{
         draw_parameters::{Blend, DepthTest},
         index::NoIndices,
@@ -50,7 +50,7 @@ where
     fn update(
         &mut self,
         ev: &mut Ev,
-        scene: &mut Scene,
+        scene: &mut Context,
         (em, cm): (&mut EntityManager, &mut ComponentManager),
     ) -> anyhow::Result<()> {
         if let Ev::Draw((_, target)) = ev {
