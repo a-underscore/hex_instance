@@ -50,7 +50,7 @@ where
     fn update(
         &mut self,
         ev: &mut Ev,
-        scene: &mut Context,
+        context: &mut Context,
         (em, cm): (&mut EntityManager, &mut ComponentManager),
     ) -> anyhow::Result<()> {
         if let Ev::Draw((_, target)) = ev {
@@ -114,7 +114,7 @@ where
                 };
 
                 for (_, i, t) in sprites {
-                    let instance_buffer = VertexBuffer::dynamic(&scene.display, &i)?;
+                    let instance_buffer = VertexBuffer::dynamic(&context.display, &i)?;
                     let uniform = uniform! {
                         camera_transform: ct.matrix().0,
                         camera_proj: c.proj().0,
