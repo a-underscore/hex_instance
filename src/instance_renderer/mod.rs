@@ -88,7 +88,7 @@ where
 
                     let mut sprites: Vec<_> = sprites
                         .into_iter()
-                        .filter_map(|((_, z), (t, i))| {
+                        .map(|((_, z), (t, i))| {
                             let instance_data: Vec<_> = i
                                 .into_iter()
                                 .map(|(s, t)| InstanceData {
@@ -98,7 +98,7 @@ where
                                 })
                                 .collect();
 
-                            Some((z, instance_data, t))
+                            (z, instance_data, t)
                         })
                         .collect();
 
