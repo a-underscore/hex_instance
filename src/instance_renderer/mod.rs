@@ -12,6 +12,7 @@ use hex::{
         Depth, Display, DrawParameters, Surface, VertexBuffer,
     },
 };
+use ordered_float::OrderedFloat;
 use std::{collections::HashMap, rc::Rc};
 
 pub struct InstanceRenderer<'a> {
@@ -77,7 +78,7 @@ where
                         })
                         .fold(HashMap::<_, (_, Vec<_>)>::new(), |mut sprites, (i, t)| {
                             let (_, instances) = sprites
-                                .entry(Rc::as_ptr(&i.texture))
+                                .entry((Rc::as_ptr(&i.texture), OrderedFloat(i.z)))
                                 .or_insert((i.texture.clone(), Vec::new()));
 
                             instances.push((i.clone(), t.clone()));
@@ -86,8 +87,8 @@ where
                         });
 
                     let mut sprites: Vec<_> = sprites
-                        .into_values()
-                        .filter_map(|(t, i)| {
+                        .into_iter()
+                        .filter_map(|((_, z), (t, i))| {
                             let instance_data: Vec<_> = i
                                 .into_iter()
                                 .map(|(s, t)| InstanceData {
@@ -97,18 +98,11 @@ where
                                 })
                                 .collect();
 
-                            Some((
-                                instance_data
-                                    .iter()
-                                    .cloned()
-                                    .min_by(|i1, i2| i1.z.total_cmp(&i2.z))?,
-                                instance_data,
-                                t,
-                            ))
+                            Some((z, instance_data, t))
                         })
                         .collect();
 
-                    sprites.sort_by(|(i1, _, _), (i2, _, _)| i1.z.total_cmp(&i2.z));
+                    sprites.sort_by_key(|(z, _, _)| *z);
 
                     sprites
                 };
