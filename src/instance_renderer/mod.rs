@@ -15,13 +15,13 @@ use hex::{
 use ordered_float::OrderedFloat;
 use std::{collections::HashMap, rc::Rc};
 
-pub struct InstanceRenderer<'a> {
+pub struct InstanceRenderer {
     pub shader: Shader,
-    pub draw_parameters: DrawParameters<'a>,
+    pub draw_parameters: DrawParameters<'static>,
     pub shape: Shape,
 }
 
-impl InstanceRenderer<'_> {
+impl InstanceRenderer {
     pub fn new(display: &Display, shape: Shape) -> anyhow::Result<Self> {
         Ok(Self {
             shader: Shader::new(
@@ -44,10 +44,7 @@ impl InstanceRenderer<'_> {
     }
 }
 
-impl<'a, 'b> System<'a> for InstanceRenderer<'b>
-where
-    'b: 'a,
-{
+impl System for InstanceRenderer {
     fn update(
         &mut self,
         ev: &mut Ev,
