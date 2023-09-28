@@ -52,7 +52,7 @@ impl System for InstanceRenderer {
         (em, cm): (&mut EntityManager, &mut ComponentManager),
     ) -> anyhow::Result<()> {
         if let Ev::Draw((_, target)) = ev {
-            if let Some((c, ct)) = em.entities.keys().cloned().find_map(|e| {
+            if let Some((c, ct)) = em.entities().find_map(|e| {
                 Some((
                     cm.get::<Camera>(e, em)
                         .and_then(|c| c.active.then_some(c))?,
@@ -62,9 +62,7 @@ impl System for InstanceRenderer {
             }) {
                 let sprites = {
                     let sprites = em
-                        .entities
-                        .keys()
-                        .cloned()
+                        .entities()
                         .filter_map(|e| {
                             Some((
                                 cm.get::<Instance>(e, em)
