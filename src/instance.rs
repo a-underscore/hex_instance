@@ -1,8 +1,4 @@
-use hex::{
-    assets::Texture,
-    ecs::{component_manager::Component, Id},
-    id,
-};
+use hex::{assets::Texture, ecs::component_manager::Component};
 use std::rc::Rc;
 
 #[derive(Clone)]
@@ -24,8 +20,4 @@ impl Instance {
     }
 }
 
-impl Component for Instance {
-    fn id() -> Id {
-        id!()
-    }
-}
+impl Component for Instance {}
