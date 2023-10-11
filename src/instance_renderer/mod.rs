@@ -54,10 +54,8 @@ impl System for InstanceRenderer {
         if let Ev::Draw((_, target)) = ev {
             if let Some((c, ct)) = em.entities().find_map(|e| {
                 Some((
-                    cm.get::<Camera>(e, em)
-                        .and_then(|c| c.active.then_some(c))?,
-                    cm.get::<Transform>(e, em)
-                        .and_then(|t| t.active.then_some(t))?,
+                    cm.get::<Camera>(e).and_then(|c| c.active.then_some(c))?,
+                    cm.get::<Transform>(e).and_then(|t| t.active.then_some(t))?,
                 ))
             }) {
                 let sprites = {
@@ -65,10 +63,8 @@ impl System for InstanceRenderer {
                         .entities()
                         .filter_map(|e| {
                             Some((
-                                cm.get::<Instance>(e, em)
-                                    .and_then(|i| i.active.then_some(i))?,
-                                cm.get::<Transform>(e, em)
-                                    .and_then(|t| t.active.then_some(t))?,
+                                cm.get::<Instance>(e).and_then(|i| i.active.then_some(i))?,
+                                cm.get::<Transform>(e).and_then(|t| t.active.then_some(t))?,
                             ))
                         })
                         .fold(HashMap::<_, (_, Vec<_>)>::new(), |mut sprites, (i, t)| {
