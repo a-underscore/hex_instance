@@ -1,67 +1,59 @@
-pub mod vertex;
 pub mod fragment;
+pub mod vertex;
 
 use crate::{Instance, InstanceData};
 use hex::{
     anyhow,
-    assets::Shape2d,
+    assets::{shape2d::Vertex2d, Shape2d},
     components::{Camera, Transform},
-    Renderer,
     ecs::{system_manager::System, ComponentManager, Context, EntityManager, Ev},
-vulkano::{
-    buffer::{
-        allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
-        BufferUsage,
-    },
-    descriptor_set::{PersistentDescriptorSet, WriteDescriptorSet},
-    memory::allocator::MemoryTypeFilter,
-    padded::Padded,
-    pipeline::{
-        graphics::{
-            color_blend::{AttachmentBlend, ColorBlendAttachmentState, ColorBlendState},
-            depth_stencil::{DepthState, DepthStencilState},
-            input_assembly::{InputAssemblyState, PrimitiveTopology},
-            multisample::MultisampleState,
-            rasterization::RasterizationState,
-            vertex_input::{Vertex, VertexDefinition},
-            viewport::{Viewport, ViewportState},
-            GraphicsPipelineCreateInfo,
+    vulkano::{
+        buffer::{
+            allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
+            BufferUsage,
         },
-        layout::PipelineDescriptorSetLayoutCreateInfo,
-        GraphicsPipeline, Pipeline, PipelineBindPoint, PipelineLayout,
-        PipelineShaderStageCreateInfo,
-    },
-    render_pass::Subpass,
-    shader::EntryPoint,
         buffer::{Buffer, BufferContents, BufferCreateInfo},
-    command_buffer::{
-        allocator::StandardCommandBufferAllocator, AutoCommandBufferBuilder, CommandBufferUsage,
-        RenderPassBeginInfo,
-    },
-    device::{
-        physical::PhysicalDeviceType, Device, DeviceCreateInfo, DeviceExtensions, QueueCreateInfo,
-        QueueFlags,
-    },
-    image::{view::ImageView, Image, ImageUsage},
-    instance::{Instance, InstanceCreateFlags, InstanceCreateInfo},
-    memory::allocator::{AllocationCreateInfo, StandardMemoryAllocator},
-    pipeline::{
-        graphics::{
-            vertex_input::Vertex,
-            viewport::Viewport,
-            GraphicsPipelineCreateInfo,
+        command_buffer::{
+            allocator::StandardCommandBufferAllocator, AutoCommandBufferBuilder,
+            CommandBufferUsage, RenderPassBeginInfo,
         },
-        layout::PipelineDescriptorSetLayoutCreateInfo,
-        DynamicState, GraphicsPipeline, PipelineLayout, PipelineShaderStageCreateInfo,
+        descriptor_set::{PersistentDescriptorSet, WriteDescriptorSet},
+        device::{
+            physical::PhysicalDeviceType, Device, DeviceCreateInfo, DeviceExtensions,
+            QueueCreateInfo, QueueFlags,
+        },
+        image::{view::ImageView, Image, ImageUsage},
+        instance::{InstanceCreateFlags, InstanceCreateInfo},
+        memory::allocator::MemoryTypeFilter,
+        memory::allocator::{AllocationCreateInfo, StandardMemoryAllocator},
+        padded::Padded,
+        pipeline::DynamicState,
+        pipeline::{
+            graphics::{
+                color_blend::{AttachmentBlend, ColorBlendAttachmentState, ColorBlendState},
+                depth_stencil::{DepthState, DepthStencilState},
+                input_assembly::{InputAssemblyState, PrimitiveTopology},
+                multisample::MultisampleState,
+                rasterization::RasterizationState,
+                vertex_input::{Vertex, VertexDefinition},
+                viewport::{Viewport, ViewportState},
+                GraphicsPipelineCreateInfo,
+            },
+            layout::PipelineDescriptorSetLayoutCreateInfo,
+            GraphicsPipeline, Pipeline, PipelineBindPoint, PipelineLayout,
+            PipelineShaderStageCreateInfo,
+        },
+        render_pass::Subpass,
+        render_pass::{Framebuffer, FramebufferCreateInfo, RenderPass},
+        shader::EntryPoint,
+        single_pass_renderpass,
+        swapchain::{
+            acquire_next_image, Surface, Swapchain, SwapchainCreateInfo, SwapchainPresentInfo,
+        },
+        sync::{self, GpuFuture},
+        Validated, VulkanError, VulkanLibrary,
     },
-    render_pass::{Framebuffer, FramebufferCreateInfo, RenderPass},
-    single_pass_renderpass,
-    swapchain::{
-        acquire_next_image, Surface, Swapchain, SwapchainCreateInfo, SwapchainPresentInfo,
-    },
-    sync::{self, GpuFuture},
-    Validated, VulkanError, VulkanLibrary,
-}
+    Renderer,
 };
 use ordered_float::OrderedFloat;
 use std::{collections::HashMap, sync::Arc};
@@ -81,7 +73,7 @@ impl InstanceRenderer {
         let fragment = fragment::load(context.device.clone())?
             .entry_point("main")
             .unwrap();
-        let pipeline = Renderer::pipeline(context, vertex.clone(), fragment.clone())?;
+        let pipeline = Self::pipeline(context, vertex.clone(), fragment.clone())?;
 
         Ok(Self {
             vertex,
@@ -89,6 +81,64 @@ impl InstanceRenderer {
             pipeline,
             shape,
         })
+    }
+
+    pub fn pipeline(
+        context: &Context,
+        vertex: EntryPoint,
+        fragment: EntryPoint,
+    ) -> anyhow::Result<Arc<GraphicsPipeline>> {
+        let vertex_input_state = [Vertex2d::per_vertex(), InstanceData::per_instance()]
+            .definition(&vertex.info().input_interface)?;
+        let stages = [
+            PipelineShaderStageCreateInfo::new(vertex),
+            PipelineShaderStageCreateInfo::new(fragment),
+        ];
+        let layout = PipelineLayout::new(
+            context.device.clone(),
+            PipelineDescriptorSetLayoutCreateInfo::from_stages(&stages)
+                .into_pipeline_layout_create_info(context.device.clone())?,
+        )?;
+        let subpass = Subpass::from(context.render_pass.clone(), 0).unwrap();
+        let extent = context.images[0].extent();
+
+        Ok(GraphicsPipeline::new(
+            context.device.clone(),
+            None,
+            GraphicsPipelineCreateInfo {
+                stages: stages.into_iter().collect(),
+                vertex_input_state: Some(vertex_input_state),
+                input_assembly_state: Some(InputAssemblyState {
+                    topology: PrimitiveTopology::TriangleFan,
+                    ..Default::default()
+                }),
+                viewport_state: Some(ViewportState {
+                    viewports: [Viewport {
+                        offset: [0.0, 0.0],
+                        extent: [extent[0] as f32, extent[1] as f32],
+                        depth_range: 0.0..=1.0,
+                    }]
+                    .into_iter()
+                    .collect(),
+                    ..Default::default()
+                }),
+                rasterization_state: Some(RasterizationState::default()),
+                depth_stencil_state: Some(DepthStencilState {
+                    depth: Some(DepthState::simple()),
+                    ..Default::default()
+                }),
+                multisample_state: Some(MultisampleState::default()),
+                color_blend_state: Some(ColorBlendState::with_attachment_states(
+                    subpass.num_color_attachments(),
+                    ColorBlendAttachmentState {
+                        blend: Some(AttachmentBlend::alpha()),
+                        ..Default::default()
+                    },
+                )),
+                subpass: Some(subpass.into()),
+                ..GraphicsPipelineCreateInfo::layout(layout)
+            },
+        )?)
     }
 }
 
@@ -100,10 +150,20 @@ impl System for InstanceRenderer {
         (em, cm): (&mut EntityManager, &mut ComponentManager),
     ) -> anyhow::Result<()> {
         if let Ev::Draw((_, builder)) = ev {
+            if context.recreate_swapchain {
+                self.pipeline =
+                    Self::pipeline(context, self.vertex.clone(), self.fragment.clone())?;
+            }
+
+            builder
+                .bind_pipeline_graphics(self.pipeline.clone())?;
+
             if let Some((c, ct)) = em.entities().find_map(|e| {
                 Some((
-                    cm.get_ref::<Camera>(e).and_then(|c| c.active.then_some(c))?,
-                    cm.get_ref::<Transform>(e).and_then(|t| t.active.then_some(t))?,
+                    cm.get_ref::<Camera>(e)
+                        .and_then(|c| c.active.then_some(c))?,
+                    cm.get_ref::<Transform>(e)
+                        .and_then(|t| t.active.then_some(t))?,
                 ))
             }) {
                 let sprites = {
@@ -111,8 +171,10 @@ impl System for InstanceRenderer {
                         .entities()
                         .filter_map(|e| {
                             Some((
-                                cm.get_ref::<Instance>(e).and_then(|i| i.active.then_some(i))?,
-                                cm.get_ref::<Transform>(e).and_then(|t| t.active.then_some(t))?,
+                                cm.get_ref::<Instance>(e)
+                                    .and_then(|i| i.active.then_some(i))?,
+                                cm.get_ref::<Transform>(e)
+                                    .and_then(|t| t.active.then_some(t))?,
                             ))
                         })
                         .fold(HashMap::<_, (_, Vec<_>)>::new(), |mut sprites, (i, t)| {
@@ -134,12 +196,12 @@ impl System for InstanceRenderer {
                                     let [t_x, t_y, t_z] = t.matrix().0;
 
                                     InstanceData {
-                                    z: s.z,
-                                    color: s.color,
-                                    transform_x: t_x,
-                                    transform_y: t_y,
-                                    transform_z: t_z,
-                                }
+                                        z: s.z,
+                                        color: s.color,
+                                        transform_x: t_x,
+                                        transform_y: t_y,
+                                        transform_z: t_z,
+                                    }
                                 })
                                 .collect();
 
@@ -191,19 +253,19 @@ impl System for InstanceRenderer {
                             [],
                         )?
                     };
-                        let instance_buffer = Buffer::from_iter(
-        context.memory_allocator.clone(),
-        BufferCreateInfo {
-            usage: BufferUsage::VERTEX_BUFFER,
-            ..Default::default()
-        },
-        AllocationCreateInfo {
-            memory_type_filter: MemoryTypeFilter::PREFER_DEVICE
-                | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
-            ..Default::default()
-        },
-        instances,
-    )?;
+                    let instance_buffer = Buffer::from_iter(
+                        context.memory_allocator.clone(),
+                        BufferCreateInfo {
+                            usage: BufferUsage::VERTEX_BUFFER,
+                            ..Default::default()
+                        },
+                        AllocationCreateInfo {
+                            memory_type_filter: MemoryTypeFilter::PREFER_DEVICE
+                                | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
+                            ..Default::default()
+                        },
+                        i,
+                    )?;
 
                     builder
                         .bind_descriptor_sets(
@@ -218,8 +280,16 @@ impl System for InstanceRenderer {
                             1,
                             texture.clone(),
                         )?
-                        .bind_vertex_buffers(0, self.shape.vertices.clone())?
-                        .draw(self.shape.vertices.len() as u32, instance_buffer.len(), 0, 0)?;
+                        .bind_vertex_buffers(
+                            0,
+                            (self.shape.vertices.clone(), instance_buffer.clone()),
+                        )?
+                        .draw(
+                            self.shape.vertices.len() as u32,
+                            instance_buffer.len() as u32,
+                            0,
+                            0,
+                        )?;
                 }
             }
         }
