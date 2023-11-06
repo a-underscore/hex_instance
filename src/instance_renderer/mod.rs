@@ -12,22 +12,11 @@ use hex::{
             allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
             BufferUsage,
         },
-        buffer::{Buffer, BufferContents, BufferCreateInfo},
-        command_buffer::{
-            allocator::StandardCommandBufferAllocator, AutoCommandBufferBuilder,
-            CommandBufferUsage, RenderPassBeginInfo,
-        },
+        buffer::{Buffer, BufferCreateInfo},
         descriptor_set::{PersistentDescriptorSet, WriteDescriptorSet},
-        device::{
-            physical::PhysicalDeviceType, Device, DeviceCreateInfo, DeviceExtensions,
-            QueueCreateInfo, QueueFlags,
-        },
-        image::{view::ImageView, Image, ImageUsage},
-        instance::{InstanceCreateFlags, InstanceCreateInfo},
+        memory::allocator::AllocationCreateInfo,
         memory::allocator::MemoryTypeFilter,
-        memory::allocator::{AllocationCreateInfo, StandardMemoryAllocator},
         padded::Padded,
-        pipeline::DynamicState,
         pipeline::{
             graphics::{
                 color_blend::{AttachmentBlend, ColorBlendAttachmentState, ColorBlendState},
@@ -44,16 +33,8 @@ use hex::{
             PipelineShaderStageCreateInfo,
         },
         render_pass::Subpass,
-        render_pass::{Framebuffer, FramebufferCreateInfo, RenderPass},
         shader::EntryPoint,
-        single_pass_renderpass,
-        swapchain::{
-            acquire_next_image, Surface, Swapchain, SwapchainCreateInfo, SwapchainPresentInfo,
-        },
-        sync::{self, GpuFuture},
-        Validated, VulkanError, VulkanLibrary,
     },
-    Renderer,
 };
 use ordered_float::OrderedFloat;
 use std::{collections::HashMap, sync::Arc};
@@ -155,8 +136,7 @@ impl System for InstanceRenderer {
                     Self::pipeline(context, self.vertex.clone(), self.fragment.clone())?;
             }
 
-            builder
-                .bind_pipeline_graphics(self.pipeline.clone())?;
+            builder.bind_pipeline_graphics(self.pipeline.clone())?;
 
             if let Some((c, ct)) = em.entities().find_map(|e| {
                 Some((
