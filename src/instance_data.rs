@@ -1,10 +1,16 @@
-use hex::glium::implement_vertex;
+use hex::vulkano::{buffer::BufferContents, pipeline::graphics::vertex_input::Vertex};
 
-#[derive(Copy, Clone)]
+#[derive(BufferContents, Vertex, Copy, Clone)]
+#[repr(C)]
 pub struct InstanceData {
+    #[format(R32_SFLOAT)]
     pub z: f32,
-    pub transform: [[f32; 3]; 3],
+    #[format(R32G32B32_SFLOAT)]
+    pub transform_x: [f32; 3],
+    #[format(R32G32B32_SFLOAT)]
+    pub transform_y: [f32; 3],
+    #[format(R32G32B32_SFLOAT)]
+    pub transform_z: [f32; 3],
+    #[format(R32G32B32A32_SFLOAT)]
     pub color: [f32; 4],
 }
-
-implement_vertex!(InstanceData, z, transform, color);
