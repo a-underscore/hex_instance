@@ -4,7 +4,7 @@ pub mod vertex;
 use crate::{Instance, InstanceData};
 use hex::{
     anyhow,
-    assets::{shape2d::Vertex2d, Shape2d},
+    assets::{shape::Vertex2d, Shape},
     components::{Camera, Transform},
     ecs::{system_manager::System, ComponentManager, Context, EntityManager, Ev},
     vulkano::{
@@ -43,11 +43,11 @@ pub struct InstanceRenderer {
     pub vertex: EntryPoint,
     pub fragment: EntryPoint,
     pub pipeline: Arc<GraphicsPipeline>,
-    pub shape: Shape2d,
+    pub shape: Shape,
 }
 
 impl InstanceRenderer {
-    pub fn new(context: &Context, shape: Shape2d) -> anyhow::Result<Self> {
+    pub fn new(context: &Context, shape: Shape) -> anyhow::Result<Self> {
         let vertex = vertex::load(context.device.clone())?
             .entry_point("main")
             .unwrap();
