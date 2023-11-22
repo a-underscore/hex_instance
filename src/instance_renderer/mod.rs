@@ -6,7 +6,7 @@ use hex::{
     anyhow,
     assets::{shape::Vertex2d, Shape},
     components::{Camera, Transform},
-    ecs::{system_manager::System, ComponentManager, Context, EntityManager, Ev},
+    ecs::{system_manager::Renderer, ComponentManager, Context, Draw, EntityManager},
     vulkano::{
         buffer::{
             allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
@@ -37,7 +37,10 @@ use hex::{
     },
 };
 use ordered_float::OrderedFloat;
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 pub struct InstanceRenderer {
     pub vertex: EntryPoint,
@@ -123,150 +126,151 @@ impl InstanceRenderer {
     }
 }
 
-impl System for InstanceRenderer {
-    fn update(
+impl Renderer for InstanceRenderer {
+    fn draw(
         &mut self,
-        ev: &mut Ev,
+        Draw(_, builder): &mut Draw,
         context: &mut Context,
-        (em, cm): (&mut EntityManager, &mut ComponentManager),
+        (em, cm): (Arc<RwLock<EntityManager>>, Arc<RwLock<ComponentManager>>),
     ) -> anyhow::Result<()> {
-        if let Ev::Draw((_, builder)) = ev {
-            if context.recreate_swapchain {
-                self.pipeline =
-                    Self::pipeline(context, self.vertex.clone(), self.fragment.clone())?;
-            }
+        if context.recreate_swapchain {
+            self.pipeline = Self::pipeline(context, self.vertex.clone(), self.fragment.clone())?;
+        }
 
-            builder.bind_pipeline_graphics(self.pipeline.clone())?;
+        builder.bind_pipeline_graphics(self.pipeline.clone())?;
 
-            if let Some((c, ct)) = em.entities().find_map(|e| {
-                Some((
-                    cm.get::<Camera>(e).and_then(|c| c.active.then_some(c))?,
-                    cm.get::<Transform>(e).and_then(|t| t.active.then_some(t))?,
-                ))
-            }) {
-                let sprites = {
-                    let sprites = em
-                        .entities()
-                        .filter_map(|e| {
-                            Some((
-                                cm.get::<Instance>(e).and_then(|i| i.active.then_some(i))?,
-                                cm.get::<Transform>(e).and_then(|t| t.active.then_some(t))?,
-                            ))
-                        })
-                        .fold(HashMap::<_, (_, Vec<_>)>::new(), |mut sprites, (i, t)| {
-                            let (_, instances) = sprites
-                                .entry((Arc::as_ptr(&i.texture), OrderedFloat(i.z)))
-                                .or_insert((i.texture.clone(), Vec::new()));
+        let em = em.read().unwrap();
+        let cm = cm.read().unwrap();
 
-                            instances.push((i.clone(), t.clone()));
+        if let Some((c, ct)) = em.entities().find_map(|e| {
+            Some((
+                cm.get_ref::<Camera>(e)
+                    .and_then(|c| c.active.then_some(c))?,
+                cm.get_ref::<Transform>(e)
+                    .and_then(|t| t.active.then_some(t))?,
+            ))
+        }) {
+            let sprites = {
+                let sprites = em
+                    .entities()
+                    .filter_map(|e| {
+                        Some((
+                            cm.get_ref::<Instance>(e)
+                                .and_then(|i| i.active.then_some(i))?,
+                            cm.get_ref::<Transform>(e)
+                                .and_then(|t| t.active.then_some(t))?,
+                        ))
+                    })
+                    .fold(HashMap::<_, (_, Vec<_>)>::new(), |mut sprites, (i, t)| {
+                        let (_, instances) = sprites
+                            .entry((Arc::as_ptr(&i.texture), OrderedFloat(i.z)))
+                            .or_insert((i.texture.clone(), Vec::new()));
 
-                            sprites
-                        });
+                        instances.push((i.clone(), t.clone()));
 
-                    let mut sprites: Vec<_> = sprites
-                        .into_iter()
-                        .map(|((_, z), (t, i))| {
-                            let instance_data: Vec<_> = i
-                                .into_iter()
-                                .map(|(s, t)| {
-                                    let [t_x, t_y, t_z] = t.matrix().0;
+                        sprites
+                    });
 
-                                    InstanceData {
-                                        z: s.z,
-                                        color: s.color,
-                                        transform_x: t_x,
-                                        transform_y: t_y,
-                                        transform_z: t_z,
-                                    }
-                                })
-                                .collect();
+                let mut sprites: Vec<_> = sprites
+                    .into_iter()
+                    .map(|((_, z), (t, i))| {
+                        let instance_data: Vec<_> = i
+                            .into_iter()
+                            .map(|(s, t)| {
+                                let [t_x, t_y, t_z] = t.matrix().0;
 
-                            (z, instance_data, t)
-                        })
-                        .collect();
+                                InstanceData {
+                                    z: s.z,
+                                    color: s.color,
+                                    transform_x: t_x,
+                                    transform_y: t_y,
+                                    transform_z: t_z,
+                                }
+                            })
+                            .collect();
 
-                    sprites.sort_by_key(|(z, _, _)| *z);
+                        (z, instance_data, t)
+                    })
+                    .collect();
 
-                    sprites
-                };
+                sprites.sort_by_key(|(z, _, _)| *z);
 
-                for (_, i, t) in sprites {
-                    let view = {
-                        let layout = self.pipeline.layout().set_layouts().get(0).unwrap();
-                        let subbuffer_allocator = SubbufferAllocator::new(
-                            context.memory_allocator.clone(),
-                            SubbufferAllocatorCreateInfo {
-                                buffer_usage: BufferUsage::UNIFORM_BUFFER,
-                                memory_type_filter: MemoryTypeFilter::PREFER_DEVICE
-                                    | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
-                                ..Default::default()
-                            },
-                        );
-                        let subbuffer = subbuffer_allocator.allocate_sized()?;
+                sprites
+            };
 
-                        *subbuffer.write()? = vertex::View {
-                            camera_transform: ct.matrix().0.map(Padded),
-                            camera_proj: c.proj().0,
-                        };
-
-                        PersistentDescriptorSet::new(
-                            &context.descriptor_set_allocator,
-                            layout.clone(),
-                            [WriteDescriptorSet::buffer(0, subbuffer)],
-                            [],
-                        )?
-                    };
-                    let texture = {
-                        let layout = self.pipeline.layout().set_layouts().get(1).unwrap();
-
-                        PersistentDescriptorSet::new(
-                            &context.descriptor_set_allocator,
-                            layout.clone(),
-                            [
-                                WriteDescriptorSet::sampler(0, t.sampler.clone()),
-                                WriteDescriptorSet::image_view(1, t.image.clone()),
-                            ],
-                            [],
-                        )?
-                    };
-                    let instance_buffer = Buffer::from_iter(
+            for (_, i, t) in sprites {
+                let view = {
+                    let layout = self.pipeline.layout().set_layouts().get(0).unwrap();
+                    let subbuffer_allocator = SubbufferAllocator::new(
                         context.memory_allocator.clone(),
-                        BufferCreateInfo {
-                            usage: BufferUsage::VERTEX_BUFFER,
-                            ..Default::default()
-                        },
-                        AllocationCreateInfo {
+                        SubbufferAllocatorCreateInfo {
+                            buffer_usage: BufferUsage::UNIFORM_BUFFER,
                             memory_type_filter: MemoryTypeFilter::PREFER_DEVICE
                                 | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
                             ..Default::default()
                         },
-                        i,
-                    )?;
+                    );
+                    let subbuffer = subbuffer_allocator.allocate_sized()?;
 
-                    builder
-                        .bind_descriptor_sets(
-                            PipelineBindPoint::Graphics,
-                            self.pipeline.layout().clone(),
-                            0,
-                            view.clone(),
-                        )?
-                        .bind_descriptor_sets(
-                            PipelineBindPoint::Graphics,
-                            self.pipeline.layout().clone(),
-                            1,
-                            texture.clone(),
-                        )?
-                        .bind_vertex_buffers(
-                            0,
-                            (self.shape.vertices.clone(), instance_buffer.clone()),
-                        )?
-                        .draw(
-                            self.shape.vertices.len() as u32,
-                            instance_buffer.len() as u32,
-                            0,
-                            0,
-                        )?;
-                }
+                    *subbuffer.write()? = vertex::View {
+                        camera_transform: ct.matrix().0.map(Padded),
+                        camera_proj: c.proj().0,
+                    };
+
+                    PersistentDescriptorSet::new(
+                        &context.descriptor_set_allocator,
+                        layout.clone(),
+                        [WriteDescriptorSet::buffer(0, subbuffer)],
+                        [],
+                    )?
+                };
+                let texture = {
+                    let layout = self.pipeline.layout().set_layouts().get(1).unwrap();
+
+                    PersistentDescriptorSet::new(
+                        &context.descriptor_set_allocator,
+                        layout.clone(),
+                        [
+                            WriteDescriptorSet::sampler(0, t.sampler.clone()),
+                            WriteDescriptorSet::image_view(1, t.image.clone()),
+                        ],
+                        [],
+                    )?
+                };
+                let instance_buffer = Buffer::from_iter(
+                    context.memory_allocator.clone(),
+                    BufferCreateInfo {
+                        usage: BufferUsage::VERTEX_BUFFER,
+                        ..Default::default()
+                    },
+                    AllocationCreateInfo {
+                        memory_type_filter: MemoryTypeFilter::PREFER_DEVICE
+                            | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
+                        ..Default::default()
+                    },
+                    i,
+                )?;
+
+                builder
+                    .bind_descriptor_sets(
+                        PipelineBindPoint::Graphics,
+                        self.pipeline.layout().clone(),
+                        0,
+                        view.clone(),
+                    )?
+                    .bind_descriptor_sets(
+                        PipelineBindPoint::Graphics,
+                        self.pipeline.layout().clone(),
+                        1,
+                        texture.clone(),
+                    )?
+                    .bind_vertex_buffers(0, (self.shape.vertices.clone(), instance_buffer.clone()))?
+                    .draw(
+                        self.shape.vertices.len() as u32,
+                        instance_buffer.len() as u32,
+                        0,
+                        0,
+                    )?;
             }
         }
 
