@@ -6,7 +6,7 @@ use hex::{
     anyhow,
     assets::{shape::Vertex2d, Shape},
     components::{Camera, Transform},
-    ecs::{system_manager::Renderer, ComponentManager, Context, Draw, EntityManager},
+    ecs::{renderer_manager::Renderer, ComponentManager, Context, Draw, EntityManager},
     vulkano::{
         buffer::{
             allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
