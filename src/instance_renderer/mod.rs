@@ -37,10 +37,7 @@ use hex::{
     },
 };
 use ordered_float::OrderedFloat;
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, sync::Arc};
 
 pub struct InstanceRenderer {
     pub vertex: EntryPoint,
