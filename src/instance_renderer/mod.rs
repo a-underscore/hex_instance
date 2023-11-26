@@ -131,16 +131,13 @@ impl Renderer for InstanceRenderer {
         &mut self,
         Draw(_, builder): &mut Draw,
         context: &mut Context,
-        (em, cm): (Arc<RwLock<EntityManager>>, Arc<RwLock<ComponentManager>>),
+        (em, cm): (&mut EntityManager, &mut ComponentManager),
     ) -> anyhow::Result<()> {
         if context.recreate_swapchain {
             self.pipeline = Self::pipeline(context, self.vertex.clone(), self.fragment.clone())?;
         }
 
         builder.bind_pipeline_graphics(self.pipeline.clone())?;
-
-        let em = em.read().unwrap();
-        let cm = cm.read().unwrap();
 
         if let Some((c, ct)) = em.entities().find_map(|e| {
             Some((
