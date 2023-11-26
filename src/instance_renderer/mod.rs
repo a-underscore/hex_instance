@@ -6,7 +6,10 @@ use hex::{
     anyhow,
     assets::{shape::Vertex2d, Shape},
     components::{Camera, Transform},
-    ecs::{renderer_manager::Renderer, ComponentManager, Context, Draw, EntityManager},
+    ecs::{
+        renderer_manager::{Draw, Renderer},
+        ComponentManager, Context, EntityManager,
+    },
     vulkano::{
         buffer::{
             allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
@@ -37,7 +40,10 @@ use hex::{
     },
 };
 use ordered_float::OrderedFloat;
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 pub struct InstanceRenderer {
     pub vertex: EntryPoint,
@@ -127,14 +133,19 @@ impl Renderer for InstanceRenderer {
     fn draw(
         &mut self,
         Draw(_, builder): &mut Draw,
-        context: &mut Context,
-        (em, cm): (&mut EntityManager, &mut ComponentManager),
+        context: Arc<RwLock<Context>>,
+        (em, cm): (Arc<RwLock<EntityManager>>, Arc<RwLock<ComponentManager>>),
     ) -> anyhow::Result<()> {
+        let context = context.read().unwrap();
+
         if context.recreate_swapchain {
-            self.pipeline = Self::pipeline(context, self.vertex.clone(), self.fragment.clone())?;
+            self.pipeline = Self::pipeline(&context, self.vertex.clone(), self.fragment.clone())?;
         }
 
         builder.bind_pipeline_graphics(self.pipeline.clone())?;
+
+        let em = em.read().unwrap();
+        let cm = cm.read().unwrap();
 
         if let Some((c, ct)) = em.entities().find_map(|e| {
             Some((
