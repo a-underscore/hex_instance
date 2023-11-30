@@ -134,7 +134,8 @@ impl Renderer for InstanceRenderer {
         &mut self,
         Draw(_, builder): &mut Draw,
         context: Arc<RwLock<Context>>,
-        (em, cm): (Arc<RwLock<EntityManager>>, Arc<RwLock<ComponentManager>>),
+        em: Arc<RwLock<EntityManager>>,
+        cm: Arc<RwLock<ComponentManager>>,
     ) -> anyhow::Result<()> {
         let context = context.read().unwrap();
 
