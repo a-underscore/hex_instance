@@ -139,7 +139,7 @@ impl Renderer for InstanceRenderer {
     ) -> anyhow::Result<()> {
         let context = context.read().unwrap();
 
-        if recreate_swapchain {
+        if *recreate_swapchain {
             self.pipeline = Self::pipeline(&context, self.vertex.clone(), self.fragment.clone())?;
         }
 
