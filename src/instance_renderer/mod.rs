@@ -132,14 +132,14 @@ impl InstanceRenderer {
 impl Renderer for InstanceRenderer {
     fn draw(
         &mut self,
-        Draw(_, builder): &mut Draw,
+        Draw(_, builder, recreate_swapchain): &mut Draw,
         context: Arc<RwLock<Context>>,
         em: Arc<RwLock<EntityManager>>,
         cm: Arc<RwLock<ComponentManager>>,
     ) -> anyhow::Result<()> {
         let context = context.read().unwrap();
 
-        if context.recreate_swapchain() {
+        if recreate_swapchain {
             self.pipeline = Self::pipeline(&context, self.vertex.clone(), self.fragment.clone())?;
         }
 
