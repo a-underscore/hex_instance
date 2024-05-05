@@ -22,9 +22,9 @@ layout(set = 0, binding = 0) uniform View {
 
 void main(void) {
         mat3 transform = mat3(transform_x, transform_y, transform_z);
-        vec2 pos = (vec3(position, 1.0) * transform * inverse(camera_transform)).xy;
+        vec2 pos = (transform * inverse(camera_transform) * vec3(position, 1.0)).xy;
 
-        gl_Position = vec4(vec3(pos, z), 1.0) * camera_proj;
+        gl_Position = camera_proj * vec4(vec3(pos, z), 1.0);
 
     	tex_pos = uv;
         tex_color = color;

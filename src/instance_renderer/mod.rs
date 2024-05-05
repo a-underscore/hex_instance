@@ -1,11 +1,14 @@
 pub mod fragment;
+pub mod instance_data;
 pub mod vertex;
 
-use crate::{Instance, InstanceData};
+pub use instance_data::InstanceData;
+
+use crate::components::Instance;
 use hex::{
     anyhow,
-    assets::{shape::Vertex2d, Shape},
-    components::{Camera, Transform},
+    assets::{shape::Vertex2, Shape},
+    components::{Camera, Trans},
     ecs::{
         renderer_manager::{Draw, Renderer},
         ComponentManager, Context, EntityManager,
@@ -75,7 +78,7 @@ impl InstanceRenderer {
         vertex: EntryPoint,
         fragment: EntryPoint,
     ) -> anyhow::Result<Arc<GraphicsPipeline>> {
-        let vertex_input_state = [Vertex2d::per_vertex(), InstanceData::per_instance()]
+        let vertex_input_state = [Vertex2::per_vertex(), InstanceData::per_instance()]
             .definition(&vertex.info().input_interface)?;
         let stages = [
             PipelineShaderStageCreateInfo::new(vertex),
@@ -152,7 +155,7 @@ impl Renderer for InstanceRenderer {
             Some((
                 cm.get_ref::<Camera>(e)
                     .and_then(|c| c.active.then_some(c))?,
-                cm.get_ref::<Transform>(e)
+                cm.get_ref::<Trans>(e)
                     .and_then(|t| t.active.then_some(t))?,
             ))
         }) {
@@ -165,7 +168,7 @@ impl Renderer for InstanceRenderer {
                         Some((
                             cm.get_ref::<Instance>(e)
                                 .and_then(|i| i.active.then_some(i))?,
-                            cm.get_ref::<Transform>(e)
+                            cm.get_ref::<Trans>(e)
                                 .and_then(|t| t.active.then_some(t))?,
                         ))
                     })
@@ -185,14 +188,14 @@ impl Renderer for InstanceRenderer {
                         let instance_data: Vec<_> = i
                             .into_iter()
                             .map(|(s, t)| {
-                                let [t_x, t_y, t_z] = t.matrix().0;
+                                let t: [[f32; 3]; 3] = t.matrix().into();
 
                                 InstanceData {
                                     z: s.z,
                                     color: s.color,
-                                    transform_x: t_x,
-                                    transform_y: t_y,
-                                    transform_z: t_z,
+                                    transform_x: t[0],
+                                    transform_y: t[1],
+                                    transform_z: t[2],
                                 }
                             })
                             .collect();
@@ -221,8 +224,8 @@ impl Renderer for InstanceRenderer {
                     let subbuffer = subbuffer_allocator.allocate_sized()?;
 
                     *subbuffer.write()? = vertex::View {
-                        camera_transform: ct.matrix().0.map(Padded),
-                        camera_proj: c.proj().0,
+                        camera_transform: <[[f32; 3]; 3]>::from(ct.matrix()).map(Padded),
+                        camera_proj: c.proj().into(),
                     };
 
                     PersistentDescriptorSet::new(
