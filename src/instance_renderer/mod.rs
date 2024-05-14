@@ -155,8 +155,7 @@ impl Renderer for InstanceRenderer {
             Some((
                 cm.get_ref::<Camera>(e)
                     .and_then(|c| c.active.then_some(c))?,
-                cm.get_ref::<Trans>(e)
-                    .and_then(|t| t.active.then_some(t))?,
+                cm.get_ref::<Trans>(e).and_then(|t| t.active.then_some(t))?,
             ))
         }) {
             let sprites = {
@@ -168,8 +167,7 @@ impl Renderer for InstanceRenderer {
                         Some((
                             cm.get_ref::<Instance>(e)
                                 .and_then(|i| i.active.then_some(i))?,
-                            cm.get_ref::<Trans>(e)
-                                .and_then(|t| t.active.then_some(t))?,
+                            cm.get_ref::<Trans>(e).and_then(|t| t.active.then_some(t))?,
                         ))
                     })
                     .fold(HashMap::<_, (_, Vec<_>)>::new(), |mut sprites, (i, t)| {
@@ -211,7 +209,7 @@ impl Renderer for InstanceRenderer {
 
             for (_, i, t) in sprites {
                 let view = {
-                    let layout = self.pipeline.layout().set_layouts().get(0).unwrap();
+                    let layout = self.pipeline.layout().set_layouts().first().unwrap();
                     let subbuffer_allocator = SubbufferAllocator::new(
                         context.memory_allocator.clone(),
                         SubbufferAllocatorCreateInfo {
