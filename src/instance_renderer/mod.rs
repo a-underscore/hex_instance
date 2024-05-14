@@ -200,7 +200,7 @@ impl Renderer for InstanceRenderer {
                             })
                             .collect();
 
-                        (z, instance_data, t)
+                        (-z, instance_data, t)
                     })
                     .collect();
 
