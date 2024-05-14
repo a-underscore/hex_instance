@@ -106,7 +106,7 @@ impl InstanceRenderer {
                     viewports: [Viewport {
                         offset: [0.0, 0.0],
                         extent: [extent[0] as f32, extent[1] as f32],
-                        depth_range: -1.0..=1.0,
+                        depth_range: 0.0..=1.0,
                     }]
                     .into_iter()
                     .collect(),
@@ -198,7 +198,7 @@ impl Renderer for InstanceRenderer {
                             })
                             .collect();
 
-                        (-z, instance_data, t)
+                        (z, instance_data, t)
                     })
                     .collect();
 
