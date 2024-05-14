@@ -42,7 +42,6 @@ use hex::{
         shader::EntryPoint,
     },
 };
-use ordered_float::OrderedFloat;
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
@@ -172,7 +171,7 @@ impl Renderer for InstanceRenderer {
                     })
                     .fold(HashMap::<_, (_, Vec<_>)>::new(), |mut sprites, (i, t)| {
                         let (_, instances) = sprites
-                            .entry((Arc::as_ptr(&i.texture), OrderedFloat(i.z)))
+                            .entry((Arc::as_ptr(&i.texture), i.layer))
                             .or_insert((i.texture.clone(), Vec::new()));
 
                         instances.push((i.clone(), t.clone()));
@@ -185,12 +184,12 @@ impl Renderer for InstanceRenderer {
                     .map(|((_, z), (t, i))| {
                         let instance_data: Vec<_> = i
                             .into_iter()
-                            .map(|(s, t)| {
+                            .map(|(i, t)| {
                                 let t: [[f32; 3]; 3] = t.matrix().into();
 
                                 InstanceData {
-                                    z: s.z,
-                                    color: s.color,
+                                    z: -(i.layer as f32),
+                                    color: i.color,
                                     transform_x: t[0],
                                     transform_y: t[1],
                                     transform_z: t[2],
@@ -202,7 +201,7 @@ impl Renderer for InstanceRenderer {
                     })
                     .collect();
 
-                sprites.sort_by_key(|(z, _, _)| *z);
+                sprites.sort_by(|(l1, _, _), (l2, _, _)| l2.cmp(&l1));
 
                 sprites
             };

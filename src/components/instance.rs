@@ -5,16 +5,16 @@ use std::sync::Arc;
 pub struct Instance {
     pub texture: Arc<Texture>,
     pub color: [f32; 4],
-    pub z: f32,
+    pub layer: u32,
     pub active: bool,
 }
 
 impl Instance {
-    pub fn new(texture: Texture, color: [f32; 4], z: f32, active: bool) -> Self {
+    pub fn new(texture: Texture, color: [f32; 4], layer: u32, active: bool) -> Self {
         Self {
             texture: Arc::new(texture),
             color,
-            z,
+            layer,
             active,
         }
     }
