@@ -201,7 +201,7 @@ impl Renderer for InstanceRenderer {
                     })
                     .collect();
 
-                sprites.sort_by(|(l1, _, _), (l2, _, _)| l2.cmp(&l1));
+                sprites.sort_by(|(l1, _, _), (l2, _, _)| l2.cmp(l1));
 
                 sprites
             };
