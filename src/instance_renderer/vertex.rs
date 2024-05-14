@@ -24,7 +24,7 @@ void main(void) {
         mat3 transform = mat3(transform_x, transform_y, transform_z);
         vec2 pos = (inverse(camera_transform) * transform * vec3(position, 1.0)).xy;
 
-        gl_Position = camera_proj * vec4(vec3(pos, -z), 1.0);
+        gl_Position = camera_proj * vec4(vec3(pos, z), 1.0);
 
     	tex_pos = uv;
         tex_color = color;
