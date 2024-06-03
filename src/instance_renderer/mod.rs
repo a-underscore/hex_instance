@@ -72,7 +72,7 @@ impl InstanceRenderer {
         })
     }
 
-    pub fn pipeline(
+    fn pipeline(
         context: &Context,
         vertex: EntryPoint,
         fragment: EntryPoint,
