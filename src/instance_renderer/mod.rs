@@ -182,6 +182,7 @@ impl Renderer for InstanceRenderer {
                 let mut sprites: Vec<_> = sprites
                     .into_iter()
                     .map(|((_, z), (t, i))| {
+                        let z = -(c.end() as f32 - z as f32);
                         let instance_data: Vec<_> = i
                             .into_iter()
                             .map(|(i, t)| {
@@ -189,7 +190,7 @@ impl Renderer for InstanceRenderer {
 
                                 InstanceData {
                                     z: -(c.end() as f32 - i.layer as f32),
-                                    color: i.color,
+                                    color: i.color.into(),
                                     transform_x: t[0],
                                     transform_y: t[1],
                                     transform_z: t[2],
@@ -201,7 +202,7 @@ impl Renderer for InstanceRenderer {
                     })
                     .collect();
 
-                sprites.sort_by(|(l1, _, _), (l2, _, _)| l1.cmp(l2));
+                sprites.sort_by(|(l1, _, _), (l2, _, _)| l1.total_cmp(l2));
 
                 sprites
             };
