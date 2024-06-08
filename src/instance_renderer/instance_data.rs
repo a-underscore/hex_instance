@@ -3,8 +3,6 @@ use hex::vulkano::{buffer::BufferContents, pipeline::graphics::vertex_input::Ver
 #[derive(BufferContents, Vertex, Copy, Clone)]
 #[repr(C)]
 pub struct InstanceData {
-    #[format(R32_SFLOAT)]
-    pub z: f32,
     #[format(R32G32B32A32_SFLOAT)]
     pub color: [f32; 4],
     #[format(R32G32B32_SFLOAT)]

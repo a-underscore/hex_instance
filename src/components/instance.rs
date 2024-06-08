@@ -10,9 +10,9 @@ pub struct Instance {
 }
 
 impl Instance {
-    pub fn new(texture: Texture, color: Vector4<f32>, layer: u32, active: bool) -> Self {
+    pub fn new(texture: Arc<Texture>, color: Vector4<f32>, layer: u32, active: bool) -> Self {
         Self {
-            texture: Arc::new(texture),
+            texture,
             color,
             layer,
             active,

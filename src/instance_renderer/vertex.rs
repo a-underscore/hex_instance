@@ -5,11 +5,10 @@ vulkano_shaders::shader! {
 
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 uv;
-layout(location = 2) in float z;
-layout(location = 3) in vec4 color;
-layout(location = 4) in vec3 transform_x;
-layout(location = 5) in vec3 transform_y;
-layout(location = 6) in vec3 transform_z;
+layout(location = 2) in vec4 color;
+layout(location = 3) in vec3 transform_x;
+layout(location = 4) in vec3 transform_y;
+layout(location = 5) in vec3 transform_z;
 
 
 layout(location = 0) out vec2 tex_pos;
@@ -18,6 +17,7 @@ layout(location = 1) out vec4 tex_color;
 layout(set = 0, binding = 0) uniform View {
     mat3 camera_transform;
     mat4 camera_proj;
+    float z;
 };
 
 void main(void) {

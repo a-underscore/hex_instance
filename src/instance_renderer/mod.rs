@@ -187,13 +187,12 @@ impl Renderer for InstanceRenderer {
                     .into_iter()
                     .map(|((_, z), (t, i))| {
                         let z = Self::calculate_z(c.end(), z);
-                        let mut instance_data: Vec<_> = i
+                        let instance_data: Vec<_> = i
                             .into_iter()
                             .map(|(i, t)| {
                                 let t: [[f32; 3]; 3] = t.matrix().into();
 
                                 InstanceData {
-                                    z: Self::calculate_z(c.end(), i.layer),
                                     color: i.color.into(),
                                     transform_x: t[0],
                                     transform_y: t[1],
@@ -202,18 +201,16 @@ impl Renderer for InstanceRenderer {
                             })
                             .collect();
 
-                        instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
-
                         (z, instance_data, t)
                     })
                     .collect();
 
-                sprites.sort_by(|(l1, _, _), (l2, _, _)| l1.total_cmp(l2));
+                sprites.sort_by(|(z1, _, _), (z2, _, _)| z1.total_cmp(z2));
 
                 sprites
             };
 
-            for (_, i, t) in sprites {
+            for (z, i, t) in sprites {
                 let view = {
                     let layout = self.pipeline.layout().set_layouts().first().unwrap();
                     let subbuffer_allocator = SubbufferAllocator::new(
@@ -230,6 +227,7 @@ impl Renderer for InstanceRenderer {
                     *subbuffer.write()? = vertex::View {
                         camera_transform: <[[f32; 3]; 3]>::from(ct.matrix()).map(Padded),
                         camera_proj: c.proj().into(),
+                        z,
                     };
 
                     PersistentDescriptorSet::new(
