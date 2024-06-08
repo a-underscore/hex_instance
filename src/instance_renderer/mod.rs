@@ -188,7 +188,7 @@ impl Renderer for InstanceRenderer {
                                 let t: [[f32; 3]; 3] = t.matrix().into();
 
                                 InstanceData {
-                                    z: -(i.layer as f32),
+                                    z: -(c.end() as f32 - i.layer as f32),
                                     color: i.color,
                                     transform_x: t[0],
                                     transform_y: t[1],
@@ -201,7 +201,7 @@ impl Renderer for InstanceRenderer {
                     })
                     .collect();
 
-                sprites.sort_by(|(l1, _, _), (l2, _, _)| l2.cmp(l1));
+                sprites.sort_by(|(l1, _, _), (l2, _, _)| l1.cmp(l2));
 
                 sprites
             };
