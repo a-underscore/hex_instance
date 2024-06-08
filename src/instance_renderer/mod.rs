@@ -183,7 +183,7 @@ impl Renderer for InstanceRenderer {
                     .into_iter()
                     .map(|((_, z), (t, i))| {
                         let z = -(c.end() as f32 - z as f32);
-                        let instance_data: Vec<_> = i
+                        let mut instance_data: Vec<_> = i
                             .into_iter()
                             .map(|(i, t)| {
                                 let t: [[f32; 3]; 3] = t.matrix().into();
@@ -197,6 +197,8 @@ impl Renderer for InstanceRenderer {
                                 }
                             })
                             .collect();
+
+                        instance_data.sort_by(|i1, i2| i1.z.total_cmp(&i2.z));
 
                         (z, instance_data, t)
                     })
