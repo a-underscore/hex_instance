@@ -193,7 +193,7 @@ impl Renderer for InstanceRenderer {
                                 let t: [[f32; 3]; 3] = t.matrix().into();
 
                                 InstanceData {
-                                    z: Self::calculate_z(c.end(), z),
+                                    z: Self::calculate_z(c.end(), i.layer),
                                     color: i.color.into(),
                                     transform_x: t[0],
                                     transform_y: t[1],
