@@ -129,10 +129,6 @@ impl InstanceRenderer {
             },
         )?)
     }
-
-    fn calculate_z(end: u32, layer: u32) -> f32 {
-        -(end as f32 - layer as f32)
-    }
 }
 
 impl Renderer for InstanceRenderer {
@@ -186,7 +182,7 @@ impl Renderer for InstanceRenderer {
                 let mut sprites: Vec<_> = sprites
                     .into_iter()
                     .map(|((_, z), (t, i))| {
-                        let z = Self::calculate_z(c.end(), z);
+                        let z = -(c.end() as f32 - z as f32);
                         let instance_data: Vec<_> = i
                             .into_iter()
                             .map(|(i, t)| {
