@@ -41,6 +41,7 @@ use hex::{
         render_pass::Subpass,
         shader::EntryPoint,
     },
+    SpriteRenderer,
 };
 use std::{
     collections::HashMap,
@@ -134,7 +135,7 @@ impl InstanceRenderer {
 impl Renderer for InstanceRenderer {
     fn draw(
         &mut self,
-        Draw(_, builder, recreate_swapchain): &mut Draw,
+        (_, builder, recreate_swapchain): &mut Draw,
         context: Arc<RwLock<Context>>,
         em: Arc<RwLock<EntityManager>>,
         cm: Arc<RwLock<ComponentManager>>,
@@ -182,7 +183,7 @@ impl Renderer for InstanceRenderer {
                 let mut sprites: Vec<_> = sprites
                     .into_iter()
                     .map(|((_, z), (t, i))| {
-                        let z = -(c.end() as f32 - z as f32);
+                        let z = SpriteRenderer::calculate_z(c.end(), z);
                         let instance_data: Vec<_> = i
                             .into_iter()
                             .map(|(i, t)| {
