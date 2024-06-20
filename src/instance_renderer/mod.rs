@@ -31,7 +31,7 @@ use hex::{
                 multisample::MultisampleState,
                 rasterization::RasterizationState,
                 vertex_input::{Vertex, VertexDefinition},
-                viewport::{Viewport, ViewportState},
+                viewport::ViewportState,
                 GraphicsPipelineCreateInfo,
             },
             layout::PipelineDescriptorSetLayoutCreateInfo,
@@ -90,7 +90,6 @@ impl InstanceRenderer {
                 .into_pipeline_layout_create_info(context.device.clone())?,
         )?;
         let subpass = Subpass::from(context.render_pass.clone(), 0).unwrap();
-        let extent = context.images[0].extent();
 
         Ok(GraphicsPipeline::new(
             context.device.clone(),
@@ -103,11 +102,7 @@ impl InstanceRenderer {
                     ..Default::default()
                 }),
                 viewport_state: Some(ViewportState {
-                    viewports: [Viewport {
-                        offset: [0.0, 0.0],
-                        extent: [extent[0] as f32, extent[1] as f32],
-                        depth_range: 0.0..=1.0,
-                    }]
+                    viewports: [context.viewport.clone()]
                     .into_iter()
                     .collect(),
                     ..Default::default()
