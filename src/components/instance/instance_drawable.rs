@@ -1,9 +1,9 @@
-use super::{fragment, vertex, Instance, InstanceData, InstanceEntity};
+use super::{vertex, Instance, InstanceData, InstanceEntity};
 use hex::{
     anyhow,
-    assets::{shape::Vertex2, Shape},
-    components::{Camera, Sprite, Trans},
-    renderer_manager::{Draw, Renderer},
+    assets::Shape,
+    components::{Camera, Trans},
+    renderer_manager::Draw,
     vulkano::{
         buffer::{
             allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
@@ -14,23 +14,7 @@ use hex::{
         memory::allocator::AllocationCreateInfo,
         memory::allocator::MemoryTypeFilter,
         padded::Padded,
-        pipeline::{
-            graphics::{
-                color_blend::{AttachmentBlend, ColorBlendAttachmentState, ColorBlendState},
-                depth_stencil::{DepthState, DepthStencilState},
-                input_assembly::{InputAssemblyState, PrimitiveTopology},
-                multisample::MultisampleState,
-                rasterization::RasterizationState,
-                vertex_input::{Vertex, VertexDefinition},
-                viewport::ViewportState,
-                GraphicsPipelineCreateInfo,
-            },
-            layout::PipelineDescriptorSetLayoutCreateInfo,
-            GraphicsPipeline, Pipeline, PipelineBindPoint, PipelineLayout,
-            PipelineShaderStageCreateInfo,
-        },
-        render_pass::Subpass,
-        shader::EntryPoint,
+        pipeline::{Pipeline, PipelineBindPoint},
     },
     ComponentManager, Context, Drawable, EntityManager, Id,
 };
@@ -67,6 +51,9 @@ impl Drawable<(i32, Shape, Vec<InstanceEntity>)> for InstanceDrawable {
 
                 instance.pipeline.read().unwrap()
             };
+
+            builder.bind_pipeline_graphics(pipeline.clone())?;
+
             let c = c.read().unwrap();
             let ct = ct.read().unwrap();
             let z = c.calculate_z(l);
@@ -74,7 +61,7 @@ impl Drawable<(i32, Shape, Vec<InstanceEntity>)> for InstanceDrawable {
                 let instance_data: Vec<_> = i
                     .iter()
                     .map(|(_, t, i)| {
-                        let i = i.write().unwrap();
+                        let i = i.read().unwrap();
                         let t = t.read().unwrap();
                         let t: [[f32; 3]; 3] = t.matrix().into();
 

@@ -1,37 +1,9 @@
-use crate::components::{instance::InstanceData, Instance};
+use crate::components::Instance;
 use hex::{
     anyhow,
-    assets::{shape::Vertex2, Shape},
-    components::{Camera, Sprite, Trans},
+    assets::Shape,
+    components::{Camera, Trans},
     renderer_manager::{Draw, Renderer},
-    vulkano::{
-        buffer::{
-            allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
-            BufferUsage,
-        },
-        buffer::{Buffer, BufferCreateInfo},
-        descriptor_set::{PersistentDescriptorSet, WriteDescriptorSet},
-        memory::allocator::AllocationCreateInfo,
-        memory::allocator::MemoryTypeFilter,
-        padded::Padded,
-        pipeline::{
-            graphics::{
-                color_blend::{AttachmentBlend, ColorBlendAttachmentState, ColorBlendState},
-                depth_stencil::{DepthState, DepthStencilState},
-                input_assembly::{InputAssemblyState, PrimitiveTopology},
-                multisample::MultisampleState,
-                rasterization::RasterizationState,
-                vertex_input::{Vertex, VertexDefinition},
-                viewport::ViewportState,
-                GraphicsPipelineCreateInfo,
-            },
-            layout::PipelineDescriptorSetLayoutCreateInfo,
-            GraphicsPipeline, Pipeline, PipelineBindPoint, PipelineLayout,
-            PipelineShaderStageCreateInfo,
-        },
-        render_pass::Subpass,
-        shader::EntryPoint,
-    },
     ComponentManager, Context, EntityManager,
 };
 use std::{
@@ -87,9 +59,8 @@ impl Renderer for InstanceRenderer {
                     .fold(
                         HashMap::<_, (_, Vec<_>)>::new(),
                         |mut instances_map, (e, t, i)| {
-                            let (z, instances) = {
+                            let (_, instances) = {
                                 let i = i.read().unwrap();
-                                let t = t.read().unwrap();
 
                                 instances_map
                                     .entry((
@@ -126,16 +97,16 @@ impl Renderer for InstanceRenderer {
                 instances
             };
 
-            for (layer, (ie, it, i), instances) in instances {
+            for (layer, (_, _, i), instances) in instances {
                 let d = i.read().unwrap().drawable.clone();
 
                 d.draw(
                     (layer, self.shape.clone(), instances),
-                    (ce.clone(), ct.clone(), c.clone()),
-                    &*context,
+                    (ce, ct.clone(), c.clone()),
+                    &context,
                     draw,
-                    &*em,
-                    &*cm,
+                    &em,
+                    &cm,
                 )?;
             }
         }

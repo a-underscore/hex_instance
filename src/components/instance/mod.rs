@@ -16,15 +16,6 @@ use hex::{
     components::Trans,
     nalgebra::Vector4,
     vulkano::{
-        buffer::{
-            allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
-            BufferUsage,
-        },
-        buffer::{Buffer, BufferCreateInfo},
-        descriptor_set::{PersistentDescriptorSet, WriteDescriptorSet},
-        memory::allocator::AllocationCreateInfo,
-        memory::allocator::MemoryTypeFilter,
-        padded::Padded,
         pipeline::{
             graphics::{
                 color_blend::{AttachmentBlend, ColorBlendAttachmentState, ColorBlendState},
@@ -37,8 +28,7 @@ use hex::{
                 GraphicsPipelineCreateInfo,
             },
             layout::PipelineDescriptorSetLayoutCreateInfo,
-            GraphicsPipeline, Pipeline, PipelineBindPoint, PipelineLayout,
-            PipelineShaderStageCreateInfo,
+            GraphicsPipeline, PipelineLayout, PipelineShaderStageCreateInfo,
         },
         render_pass::Subpass,
         shader::EntryPoint,
