@@ -8,11 +8,8 @@ use crate::components::Instance;
 use hex::{
     anyhow,
     assets::{shape::Vertex2, Shape},
-    components::{Camera, Trans},
-    ecs::{
-        renderer_manager::{Draw, Renderer},
-        ComponentManager, Context, EntityManager,
-    },
+    components::{Camera, Sprite, Trans},
+    renderer_manager::{Draw, Renderer},
     vulkano::{
         buffer::{
             allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
@@ -41,7 +38,7 @@ use hex::{
         render_pass::Subpass,
         shader::EntryPoint,
     },
-    SpriteRenderer,
+    ComponentManager, Context, EntityManager,
 };
 use std::{
     collections::HashMap,
@@ -102,9 +99,7 @@ impl InstanceRenderer {
                     ..Default::default()
                 }),
                 viewport_state: Some(ViewportState {
-                    viewports: [context.viewport.clone()]
-                    .into_iter()
-                    .collect(),
+                    viewports: [context.viewport.clone()].into_iter().collect(),
                     ..Default::default()
                 }),
                 rasterization_state: Some(RasterizationState::default()),
@@ -178,7 +173,7 @@ impl Renderer for InstanceRenderer {
                 let mut sprites: Vec<_> = sprites
                     .into_iter()
                     .map(|((_, z), (t, i))| {
-                        let z = SpriteRenderer::calculate_z(c.end(), z);
+                        let z = Sprite::calculate_z(c.end(), z);
                         let instance_data: Vec<_> = i
                             .into_iter()
                             .map(|(i, t)| {

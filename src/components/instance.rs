@@ -1,4 +1,4 @@
-use hex::{assets::Texture, ecs::component_manager::Component, nalgebra::Vector4};
+use hex::{assets::Texture, component_manager::Component, nalgebra::Vector4};
 use std::sync::Arc;
 
 #[derive(Clone)]
