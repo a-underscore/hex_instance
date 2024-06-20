@@ -43,7 +43,7 @@ pub type InstanceEntity = (Id, Arc<RwLock<Trans>>, Arc<RwLock<Instance>>);
 pub struct Instance {
     pub texture: Arc<Texture>,
     pub pipeline: Arc<RwLock<Arc<GraphicsPipeline>>>,
-    pub drawable: Arc<dyn Drawable<(i32, Shape, Vec<InstanceEntity>)>>,
+    pub drawable: Arc<dyn Drawable<(f32, Shape, Vec<InstanceEntity>)>>,
     pub shaders: Arc<(EntryPoint, EntryPoint)>,
     pub color: Vector4<f32>,
     pub layer: i32,

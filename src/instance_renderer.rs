@@ -97,11 +97,15 @@ impl Renderer for InstanceRenderer {
                 instances
             };
 
-            for (layer, (_, _, i), instances) in instances {
-                let d = i.read().unwrap().drawable.clone();
+            for (_, (_, _, i), instances) in instances {
+                let (z, d) = {
+                    let i = i.read().unwrap();
+
+                    (c.read().unwrap().calculate_z(i.layer), i.drawable.clone())
+                };
 
                 d.draw(
-                    (layer, self.shape.clone(), instances),
+                    (z, self.shape.clone(), instances),
                     (ce, ct.clone(), c.clone()),
                     &context,
                     draw,

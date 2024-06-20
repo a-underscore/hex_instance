@@ -28,10 +28,10 @@ impl InstanceDrawable {
     }
 }
 
-impl Drawable<(i32, Shape, Vec<InstanceEntity>)> for InstanceDrawable {
+impl Drawable<(f32, Shape, Vec<InstanceEntity>)> for InstanceDrawable {
     fn draw(
         &self,
-        (l, s, i): (i32, Shape, Vec<InstanceEntity>),
+        (z, s, i): (f32, Shape, Vec<InstanceEntity>),
         (_, ct, c): (Id, Arc<RwLock<Trans>>, Arc<RwLock<Camera>>),
         context: &Context,
         (_, builder, recreate_swapchain): &mut Draw,
@@ -56,7 +56,6 @@ impl Drawable<(i32, Shape, Vec<InstanceEntity>)> for InstanceDrawable {
 
             let c = c.read().unwrap();
             let ct = ct.read().unwrap();
-            let z = c.calculate_z(l);
             let instance_data = {
                 let instance_data: Vec<_> = i
                     .iter()
