@@ -59,7 +59,6 @@ impl Renderer for InstanceRenderer {
                                         Arc::as_ptr(&i.texture),
                                         Arc::as_ptr(&i.pipeline),
                                         Arc::as_ptr(&i.drawable),
-                                        Arc::as_ptr(&i.shaders),
                                         i.layer,
                                     ))
                                     .or_insert((i.layer, Vec::new()))

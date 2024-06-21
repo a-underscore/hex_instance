@@ -41,14 +41,14 @@ impl Drawable<(f32, Vec<InstanceEntity>)> for InstanceDrawable {
             let (_, _, instance) = i.first().unwrap();
             let instance = instance.read().unwrap();
             let pipeline = {
-                if *recreate_swapchain {
-                    let (vertex, fragment) = &*instance.shaders;
+                let ((vertex, fragment), pipeline) = &*instance.pipeline;
 
-                    *instance.pipeline.write().unwrap() =
+                if *recreate_swapchain {
+                    *pipeline.write().unwrap() =
                         Instance::pipeline(context, vertex.clone(), fragment.clone())?;
                 }
 
-                instance.pipeline.read().unwrap()
+                pipeline.read().unwrap().clone()
             };
 
             builder.bind_pipeline_graphics(pipeline.clone())?;
