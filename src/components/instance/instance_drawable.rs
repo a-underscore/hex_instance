@@ -27,10 +27,10 @@ impl InstanceDrawable {
     }
 }
 
-impl Drawable<(f32, Vec<InstanceEntity>)> for InstanceDrawable {
+impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
     fn draw(
         &self,
-        (z, i): (f32, Vec<InstanceEntity>),
+        i: Vec<InstanceEntity>,
         (_, ct, c): (Id, Arc<RwLock<Trans>>, Arc<RwLock<Camera>>),
         context: &Context,
         (_, builder, recreate_swapchain): &mut Draw,
@@ -90,7 +90,7 @@ impl Drawable<(f32, Vec<InstanceEntity>)> for InstanceDrawable {
                 *subbuffer.write()? = vertex::View {
                     camera_transform: <[[f32; 3]; 3]>::from(ct.matrix()).map(Padded),
                     camera_proj: c.proj().into(),
-                    z,
+                    z: c.calculate_z(instance.layer),
                 };
 
                 PersistentDescriptorSet::new(

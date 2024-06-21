@@ -45,7 +45,7 @@ pub struct Instance {
     pub shape: Arc<Shape>,
     pub texture: Arc<Texture>,
     pub pipeline: Arc<InstancePipeline>,
-    pub drawable: Arc<dyn Drawable<(f32, Vec<InstanceEntity>)>>,
+    pub drawable: Arc<dyn Drawable<Vec<InstanceEntity>>>,
     pub color: Vector4<f32>,
     pub layer: i32,
     pub active: bool,
