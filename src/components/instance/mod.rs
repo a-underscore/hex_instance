@@ -41,9 +41,10 @@ pub type InstanceEntity = (Id, Arc<RwLock<Trans>>, Arc<RwLock<Instance>>);
 
 #[derive(Clone)]
 pub struct Instance {
+    pub shape: Arc<Shape>,
     pub texture: Arc<Texture>,
     pub pipeline: Arc<RwLock<Arc<GraphicsPipeline>>>,
-    pub drawable: Arc<dyn Drawable<(f32, Shape, Vec<InstanceEntity>)>>,
+    pub drawable: Arc<dyn Drawable<(f32, Vec<InstanceEntity>)>>,
     pub shaders: Arc<(EntryPoint, EntryPoint)>,
     pub color: Vector4<f32>,
     pub layer: i32,
@@ -53,6 +54,7 @@ pub struct Instance {
 impl Instance {
     pub fn new(
         context: &Context,
+        shape: Arc<Shape>,
         texture: Arc<Texture>,
         color: Vector4<f32>,
         layer: i32,
@@ -66,6 +68,7 @@ impl Instance {
             .unwrap();
 
         Ok(Self {
+            shape,
             texture,
             pipeline: Arc::new(RwLock::new(Self::pipeline(
                 context,

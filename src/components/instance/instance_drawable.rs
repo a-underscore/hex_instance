@@ -1,7 +1,6 @@
 use super::{vertex, Instance, InstanceData, InstanceEntity};
 use hex::{
     anyhow,
-    assets::Shape,
     components::{Camera, Trans},
     renderer_manager::Draw,
     vulkano::{
@@ -28,10 +27,10 @@ impl InstanceDrawable {
     }
 }
 
-impl Drawable<(f32, Shape, Vec<InstanceEntity>)> for InstanceDrawable {
+impl Drawable<(f32, Vec<InstanceEntity>)> for InstanceDrawable {
     fn draw(
         &self,
-        (z, s, i): (f32, Shape, Vec<InstanceEntity>),
+        (z, i): (f32, Vec<InstanceEntity>),
         (_, ct, c): (Id, Arc<RwLock<Trans>>, Arc<RwLock<Camera>>),
         context: &Context,
         (_, builder, recreate_swapchain): &mut Draw,
@@ -141,8 +140,16 @@ impl Drawable<(f32, Shape, Vec<InstanceEntity>)> for InstanceDrawable {
                     1,
                     texture.clone(),
                 )?
-                .bind_vertex_buffers(0, (s.vertices.clone(), instance_buffer.clone()))?
-                .draw(s.vertices.len() as u32, instance_buffer.len() as u32, 0, 0)?;
+                .bind_vertex_buffers(
+                    0,
+                    (instance.shape.vertices.clone(), instance_buffer.clone()),
+                )?
+                .draw(
+                    instance.shape.vertices.len() as u32,
+                    instance_buffer.len() as u32,
+                    0,
+                    0,
+                )?;
         }
 
         Ok(())

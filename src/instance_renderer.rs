@@ -1,7 +1,6 @@
 use crate::components::Instance;
 use hex::{
     anyhow,
-    assets::Shape,
     components::{Camera, Trans},
     renderer_manager::{Draw, Renderer},
     ComponentManager, Context, EntityManager,
@@ -11,15 +10,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-pub struct InstanceRenderer {
-    pub shape: Shape,
-}
-
-impl InstanceRenderer {
-    pub fn new(shape: Shape) -> Self {
-        Self { shape }
-    }
-}
+pub struct InstanceRenderer;
 
 impl Renderer for InstanceRenderer {
     fn draw(
@@ -64,6 +55,7 @@ impl Renderer for InstanceRenderer {
 
                                 instances_map
                                     .entry((
+                                        Arc::as_ptr(&i.shape),
                                         Arc::as_ptr(&i.texture),
                                         Arc::as_ptr(&i.pipeline),
                                         Arc::as_ptr(&i.drawable),
@@ -82,13 +74,9 @@ impl Renderer for InstanceRenderer {
                 let mut instances: Vec<_> = instances
                     .into_values()
                     .filter_map(|(layer, i)| {
-                        if !i.is_empty() {
-                            let instance = i[0].clone();
+                        let instance = i.first()?.clone();
 
-                            Some((layer, instance, i))
-                        } else {
-                            None
-                        }
+                        Some((layer, instance, i))
                     })
                     .collect();
 
@@ -105,7 +93,7 @@ impl Renderer for InstanceRenderer {
                 };
 
                 d.draw(
-                    (z, self.shape.clone(), instances),
+                    (z, instances),
                     (ce, ct.clone(), c.clone()),
                     &context,
                     draw,
