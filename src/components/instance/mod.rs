@@ -82,6 +82,14 @@ impl Instance {
         })
     }
 
+    pub fn recreate_pipeline(&self, context: &Context) -> anyhow::Result<()> {
+        let (ref vertex, ref fragment, ref pipeline) = &*self.pipeline;
+
+        *pipeline.write().unwrap() = Self::pipeline(context, vertex.clone(), fragment.clone())?;
+
+        Ok(())
+    }
+
     pub fn pipeline(
         context: &Context,
         vertex: EntryPoint,

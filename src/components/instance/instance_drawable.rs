@@ -1,4 +1,4 @@
-use super::{vertex, Instance, InstanceData, InstanceEntity};
+use super::{vertex, InstanceData, InstanceEntity};
 use hex::{
     anyhow,
     components::{Camera, Trans},
@@ -41,12 +41,11 @@ impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
             let (_, _, instance) = i.first().unwrap();
             let instance = instance.read().unwrap();
             let pipeline = {
-                let (vertex, fragment, pipeline) = &*instance.pipeline;
-
                 if *recreate_swapchain {
-                    *pipeline.write().unwrap() =
-                        Instance::pipeline(context, vertex.clone(), fragment.clone())?;
+                    instance.recreate_pipeline(context)?;
                 }
+
+                let (_, _, pipeline) = &*instance.pipeline;
 
                 pipeline.read().unwrap().clone()
             };
