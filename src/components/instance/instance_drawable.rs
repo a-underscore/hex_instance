@@ -41,7 +41,7 @@ impl Drawable<(f32, Vec<InstanceEntity>)> for InstanceDrawable {
             let (_, _, instance) = i.first().unwrap();
             let instance = instance.read().unwrap();
             let pipeline = {
-                let ((vertex, fragment), pipeline) = &*instance.pipeline;
+                let (vertex, fragment, pipeline) = &*instance.pipeline;
 
                 if *recreate_swapchain {
                     *pipeline.write().unwrap() =

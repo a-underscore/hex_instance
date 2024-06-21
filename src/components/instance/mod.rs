@@ -38,12 +38,13 @@ use hex::{
 use std::sync::{Arc, RwLock};
 
 pub type InstanceEntity = (Id, Arc<RwLock<Trans>>, Arc<RwLock<Instance>>);
+pub type InstancePipeline = (EntryPoint, EntryPoint, RwLock<Arc<GraphicsPipeline>>);
 
 #[derive(Clone)]
 pub struct Instance {
     pub shape: Arc<Shape>,
     pub texture: Arc<Texture>,
-    pub pipeline: Arc<((EntryPoint, EntryPoint), RwLock<Arc<GraphicsPipeline>>)>,
+    pub pipeline: Arc<InstancePipeline>,
     pub drawable: Arc<dyn Drawable<(f32, Vec<InstanceEntity>)>>,
     pub color: Vector4<f32>,
     pub layer: i32,
@@ -70,7 +71,8 @@ impl Instance {
             shape,
             texture,
             pipeline: Arc::new((
-                (vertex.clone(), fragment.clone()),
+                vertex.clone(),
+                fragment.clone(),
                 RwLock::new(Self::pipeline(context, vertex, fragment)?),
             )),
             drawable: InstanceDrawable::new(),
