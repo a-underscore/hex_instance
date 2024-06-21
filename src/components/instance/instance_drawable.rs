@@ -37,8 +37,7 @@ impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
         _: &EntityManager,
         _: &ComponentManager,
     ) -> anyhow::Result<()> {
-        if !i.is_empty() {
-            let (_, _, instance) = i.first().unwrap();
+        if let Some((_, _, instance)) = i.first() {
             let instance = instance.read().unwrap();
             let pipeline = {
                 if *recreate_swapchain {
