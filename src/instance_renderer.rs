@@ -26,15 +26,11 @@ impl Renderer for InstanceRenderer {
 
         if let Some((ce, c, ct)) = em
             .entities()
-            .keys()
-            .cloned()
             .find_map(|e| Some((e, cm.get::<Camera>(e)?, cm.get::<Trans>(e)?)))
         {
             let instances = {
                 let instances = em
                     .entities()
-                    .keys()
-                    .cloned()
                     .filter_map(|e| Some((e, cm.get::<Trans>(e)?, cm.get::<Instance>(e)?)))
                     .fold(
                         HashMap::<_, (_, Vec<_>)>::new(),
