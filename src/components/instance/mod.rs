@@ -48,7 +48,6 @@ pub struct Instance {
     pub drawable: Arc<dyn Drawable<Vec<InstanceEntity>>>,
     pub color: Vector4<f32>,
     pub layer: i32,
-    pub active: bool,
 }
 
 impl Instance {
@@ -58,7 +57,6 @@ impl Instance {
         texture: Arc<Texture>,
         color: Vector4<f32>,
         layer: i32,
-        active: bool,
     ) -> anyhow::Result<Self> {
         let vertex = vertex::load(context.device.clone())?
             .entry_point("main")
@@ -78,7 +76,6 @@ impl Instance {
             drawable: InstanceDrawable::new(),
             color,
             layer,
-            active,
         })
     }
 

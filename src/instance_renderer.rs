@@ -24,29 +24,18 @@ impl Renderer for InstanceRenderer {
         let em = em.read().unwrap();
         let cm = cm.read().unwrap();
 
-        if let Some((ce, c, ct)) = em.entities().keys().cloned().find_map(|e| {
-            Some((
-                e,
-                cm.get::<Camera>(e)
-                    .and_then(|c| c.read().unwrap().active.then_some(c))?,
-                cm.get::<Trans>(e)
-                    .and_then(|t| t.read().unwrap().active.then_some(t))?,
-            ))
-        }) {
+        if let Some((ce, c, ct)) = em
+            .entities()
+            .keys()
+            .cloned()
+            .find_map(|e| Some((e, cm.get::<Camera>(e)?, cm.get::<Trans>(e)?)))
+        {
             let instances = {
                 let instances = em
                     .entities()
                     .keys()
                     .cloned()
-                    .filter_map(|e| {
-                        Some((
-                            e,
-                            cm.get::<Trans>(e)
-                                .and_then(|t| t.read().unwrap().active.then_some(t))?,
-                            cm.get::<Instance>(e)
-                                .and_then(|i| i.read().unwrap().active.then_some(i))?,
-                        ))
-                    })
+                    .filter_map(|e| Some((e, cm.get::<Trans>(e)?, cm.get::<Instance>(e)?)))
                     .fold(
                         HashMap::<_, (_, Vec<_>)>::new(),
                         |mut instances_map, (e, t, i)| {
