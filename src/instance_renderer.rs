@@ -20,18 +20,23 @@ impl Renderer for InstanceRenderer {
         em: Arc<RwLock<EntityManager>>,
         cm: Arc<RwLock<ComponentManager>>,
     ) -> anyhow::Result<()> {
-        let context = context.read().unwrap();
-        let em = em.read().unwrap();
-        let cm = cm.read().unwrap();
+        if let Some(((ce, c, ct), instances)) = {
+            let em = em.read().unwrap();
+            let cm = cm.read().unwrap();
 
-        if let Some((ce, c, ct)) = em
-            .entities()
-            .find_map(|e| Some((e, cm.get::<Camera>(e)?, cm.get::<Trans>(e)?)))
-        {
-            let instances = {
+            if let Some(c) = em
+                .entities()
+                .find_map(|e| Some((e, cm.get::<Camera>(e)?.clone(), cm.get::<Trans>(e)?.clone())))
+            {
                 let instances = em
                     .entities()
-                    .filter_map(|e| Some((e, cm.get::<Trans>(e)?, cm.get::<Instance>(e)?)))
+                    .filter_map(|e| {
+                        Some((
+                            e,
+                            cm.get::<Trans>(e)?.clone(),
+                            cm.get::<Instance>(e)?.clone(),
+                        ))
+                    })
                     .fold(
                         HashMap::<_, (_, Vec<_>)>::new(),
                         |mut instances_map, (e, t, i)| {
@@ -66,19 +71,21 @@ impl Renderer for InstanceRenderer {
 
                 instances.sort_by(|(l1, _, _), (l2, _, _)| l1.cmp(l2));
 
-                instances
-            };
-
+                Some((c, instances))
+            } else {
+                None
+            }
+        } {
             for (_, (_, _, i), instances) in instances {
                 let d = i.read().unwrap().drawable.clone();
 
-                d.draw(
+                d.write().unwrap().draw(
                     instances,
                     (ce, ct.clone(), c.clone()),
-                    &context,
                     draw,
-                    &em,
-                    &cm,
+                    context.clone(),
+                    em.clone(),
+                    cm.clone(),
                 )?;
             }
         }

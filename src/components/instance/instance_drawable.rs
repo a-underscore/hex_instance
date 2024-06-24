@@ -22,26 +22,27 @@ use std::sync::{Arc, RwLock};
 pub struct InstanceDrawable;
 
 impl InstanceDrawable {
-    pub fn new() -> Arc<Self> {
-        Arc::new(Self)
+    pub fn new() -> Arc<RwLock<Self>> {
+        Arc::new(RwLock::new(Self))
     }
 }
 
 impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
     fn draw(
-        &self,
+        &mut self,
         i: Vec<InstanceEntity>,
         (_, ct, c): (Id, Arc<RwLock<Trans>>, Arc<RwLock<Camera>>),
-        context: &Context,
         (_, builder, recreate_swapchain): &mut Draw,
-        _: &EntityManager,
-        _: &ComponentManager,
+        context: Arc<RwLock<Context>>,
+        _: Arc<RwLock<EntityManager>>,
+        _: Arc<RwLock<ComponentManager>>,
     ) -> anyhow::Result<()> {
         if let Some((_, _, instance)) = i.first() {
+            let context = context.read().unwrap();
             let instance = instance.read().unwrap();
             let pipeline = {
                 if *recreate_swapchain {
-                    instance.recreate_pipeline(context)?;
+                    instance.recreate_pipeline(&context)?;
                 }
 
                 let (_, _, pipeline) = &*instance.pipeline;
