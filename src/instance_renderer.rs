@@ -20,7 +20,7 @@ impl Renderer for InstanceRenderer {
         em: Arc<RwLock<EntityManager>>,
         cm: Arc<RwLock<ComponentManager>>,
     ) -> anyhow::Result<()> {
-        if let Some(((ce, c, ct), instances)) = {
+        let res = {
             let em = em.read().unwrap();
             let cm = cm.read().unwrap();
 
@@ -75,7 +75,9 @@ impl Renderer for InstanceRenderer {
             } else {
                 None
             }
-        } {
+        };
+
+        if let Some(((ce, c, ct), instances)) = res {
             for (_, (_, _, i), instances) in instances {
                 let d = i.read().unwrap().drawable.clone();
 
