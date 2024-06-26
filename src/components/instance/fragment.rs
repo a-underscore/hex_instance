@@ -1,4 +1,4 @@
-vulkano_shaders::shader! {
+hex::vulkano_shaders::shader! {
     ty: "fragment",
     src: r"
 #version 450
