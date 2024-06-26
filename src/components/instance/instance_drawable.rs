@@ -45,7 +45,7 @@ impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
                     instance.recreate_pipeline(&context)?;
                 }
 
-                let (_, _, pipeline) = &*instance.pipeline;
+                let (pipeline, _, _) = &*instance.pipeline;
 
                 pipeline.read().unwrap().clone()
             };

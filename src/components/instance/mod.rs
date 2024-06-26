@@ -38,7 +38,7 @@ use hex::{
 use std::sync::{Arc, RwLock};
 
 pub type InstanceEntity = (Id, Arc<RwLock<Trans>>, Arc<RwLock<Instance>>);
-pub type InstancePipeline = (EntryPoint, EntryPoint, RwLock<Arc<GraphicsPipeline>>);
+pub type InstancePipeline = (RwLock<Arc<GraphicsPipeline>>, EntryPoint, EntryPoint);
 
 #[derive(Clone)]
 pub struct Instance {
@@ -69,9 +69,9 @@ impl Instance {
             shape,
             texture,
             pipeline: Arc::new((
-                vertex.clone(),
-                fragment.clone(),
-                RwLock::new(Self::pipeline(context, vertex, fragment)?),
+                RwLock::new(Self::pipeline(context, vertex.clone(), fragment.clone())?),
+                vertex,
+                fragment,
             )),
             drawable: InstanceDrawable::new(),
             color,
@@ -80,7 +80,7 @@ impl Instance {
     }
 
     pub fn recreate_pipeline(&self, context: &Context) -> anyhow::Result<()> {
-        let (ref vertex, ref fragment, ref pipeline) = &*self.pipeline;
+        let (ref pipeline, ref vertex, ref fragment) = &*self.pipeline;
 
         *pipeline.write().unwrap() = Self::pipeline(context, vertex.clone(), fragment.clone())?;
 
