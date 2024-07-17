@@ -24,57 +24,54 @@ impl Renderer for InstanceRenderer {
             let em = em.read().unwrap();
             let cm = cm.read().unwrap();
 
-            if let Some(c) = em
-                .entities()
+            em.entities()
                 .find_map(|e| Some((e, cm.get::<Camera>(e)?.clone(), cm.get::<Trans>(e)?.clone())))
-            {
-                let instances = em
-                    .entities()
-                    .filter_map(|e| {
-                        Some((
-                            e,
-                            cm.get::<Trans>(e)?.clone(),
-                            cm.get::<Instance>(e)?.clone(),
-                        ))
-                    })
-                    .fold(
-                        HashMap::<_, (_, Vec<_>)>::new(),
-                        |mut instances_map, (e, t, i)| {
-                            let (_, instances) = {
-                                let i = i.read().unwrap();
+                .map(|c| {
+                    let instances = em
+                        .entities()
+                        .filter_map(|e| {
+                            Some((
+                                e,
+                                cm.get::<Trans>(e)?.clone(),
+                                cm.get::<Instance>(e)?.clone(),
+                            ))
+                        })
+                        .fold(
+                            HashMap::<_, (_, Vec<_>)>::new(),
+                            |mut instances_map, (e, t, i)| {
+                                let (_, instances) = {
+                                    let i = i.read().unwrap();
+
+                                    instances_map
+                                        .entry((
+                                            Arc::as_ptr(&i.shape),
+                                            Arc::as_ptr(&i.texture),
+                                            Arc::as_ptr(&i.pipeline),
+                                            Arc::as_ptr(&i.drawable),
+                                            i.layer,
+                                        ))
+                                        .or_insert((i.layer, Vec::new()))
+                                };
+
+                                instances.push((e, t.clone(), i.clone()));
 
                                 instances_map
-                                    .entry((
-                                        Arc::as_ptr(&i.shape),
-                                        Arc::as_ptr(&i.texture),
-                                        Arc::as_ptr(&i.pipeline),
-                                        Arc::as_ptr(&i.drawable),
-                                        i.layer,
-                                    ))
-                                    .or_insert((i.layer, Vec::new()))
-                            };
+                            },
+                        );
 
-                            instances.push((e, t.clone(), i.clone()));
+                    let mut instances: Vec<_> = instances
+                        .into_values()
+                        .filter_map(|(layer, i)| {
+                            let instance = i.first()?.clone();
 
-                            instances_map
-                        },
-                    );
+                            Some((layer, instance, i))
+                        })
+                        .collect();
 
-                let mut instances: Vec<_> = instances
-                    .into_values()
-                    .filter_map(|(layer, i)| {
-                        let instance = i.first()?.clone();
+                    instances.sort_by_key(|(l, _, _)| *l);
 
-                        Some((layer, instance, i))
-                    })
-                    .collect();
-
-                instances.sort_by(|(l1, _, _), (l2, _, _)| l1.cmp(l2));
-
-                Some((c, instances))
-            } else {
-                None
-            }
+                    (c, instances)
+                })
         };
 
         if let Some(((ce, c, ct), instances)) = res {
