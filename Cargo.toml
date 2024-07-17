@@ -4,6 +4,5 @@ version = "0.3.0"
 edition = "2021"
 
 [dependencies]
-#hex = { git = "https://github.com/a-underscore/hex", version = "0.3.0", branch = "0.3.0" }
-hex = { path = "../hex" }
+hex = { git = "https://github.com/a-underscore/hex", version = "0.3.0", branch = "0.3.0" }
 vulkano = "0.34.1"
