@@ -2,13 +2,11 @@ use crate::components::Instance;
 use hex::{
     anyhow,
     components::{Camera, Trans},
+    parking_lot::RwLock,
     renderer_manager::{Draw, Renderer},
     ComponentManager, Context, EntityManager,
 };
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, sync::Arc};
 
 pub struct InstanceRenderer;
 
@@ -21,8 +19,8 @@ impl Renderer for InstanceRenderer {
         cm: Arc<RwLock<ComponentManager>>,
     ) -> anyhow::Result<()> {
         let res = {
-            let em = em.read().unwrap();
-            let cm = cm.read().unwrap();
+            let em = em.read();
+            let cm = cm.read();
 
             em.entities()
                 .find_map(|e| Some((e, cm.get::<Camera>(e)?.clone(), cm.get::<Trans>(e)?.clone())))
@@ -40,7 +38,7 @@ impl Renderer for InstanceRenderer {
                             HashMap::<_, (_, Vec<_>)>::new(),
                             |mut instances_map, (e, t, i)| {
                                 let (_, instances) = {
-                                    let i = i.read().unwrap();
+                                    let i = i.read();
 
                                     instances_map
                                         .entry((
@@ -76,9 +74,9 @@ impl Renderer for InstanceRenderer {
 
         if let Some(((ce, c, ct), instances)) = res {
             for (_, (_, _, i), instances) in instances {
-                let d = i.read().unwrap().drawable.clone();
+                let d = i.read().drawable.clone();
 
-                d.write().unwrap().draw(
+                d.write().draw(
                     instances,
                     (ce, ct.clone(), c.clone()),
                     draw,

@@ -15,6 +15,7 @@ use hex::{
     component_manager::Component,
     components::Trans,
     nalgebra::Vector4,
+    parking_lot::RwLock,
     vulkano::{
         pipeline::{
             graphics::{
@@ -35,7 +36,7 @@ use hex::{
     },
     Context, Drawable, Id,
 };
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 pub type InstanceEntity = (Id, Arc<RwLock<Trans>>, Arc<RwLock<Instance>>);
 pub type InstancePipeline = (RwLock<Arc<GraphicsPipeline>>, EntryPoint, EntryPoint);
@@ -82,7 +83,7 @@ impl Instance {
     pub fn recreate_pipeline(&self, context: &Context) -> anyhow::Result<()> {
         let (ref pipeline, ref vertex, ref fragment) = &*self.pipeline;
 
-        *pipeline.write().unwrap() = Self::pipeline(context, vertex.clone(), fragment.clone())?;
+        *pipeline.write() = Self::pipeline(context, vertex.clone(), fragment.clone())?;
 
         Ok(())
     }

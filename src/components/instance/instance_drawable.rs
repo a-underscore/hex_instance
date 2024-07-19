@@ -2,6 +2,7 @@ use super::{vertex, InstanceData, InstanceEntity};
 use hex::{
     anyhow,
     components::{Camera, Trans},
+    parking_lot::RwLock,
     renderer_manager::Draw,
     vulkano::{
         buffer::{
@@ -17,7 +18,7 @@ use hex::{
     },
     ComponentManager, Context, Drawable, EntityManager, Id,
 };
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 pub struct InstanceDrawable;
 
@@ -38,8 +39,8 @@ impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
         _: Arc<RwLock<ComponentManager>>,
     ) -> anyhow::Result<()> {
         if let Some((_, _, instance)) = i.first() {
-            let context = context.read().unwrap();
-            let instance = instance.read().unwrap();
+            let context = context.read();
+            let instance = instance.read();
             let pipeline = {
                 if *recreate_swapchain {
                     instance.recreate_pipeline(&context)?;
@@ -47,19 +48,19 @@ impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
 
                 let (pipeline, _, _) = &*instance.pipeline;
 
-                pipeline.read().unwrap().clone()
+                pipeline.read().clone()
             };
 
             builder.bind_pipeline_graphics(pipeline.clone())?;
 
-            let c = c.read().unwrap();
-            let ct = ct.read().unwrap();
+            let c = c.read();
+            let ct = ct.read();
             let instance_data = {
                 let instance_data: Vec<_> = i
                     .iter()
                     .map(|(_, t, i)| {
-                        let i = i.read().unwrap();
-                        let t = t.read().unwrap();
+                        let i = i.read();
+                        let t = t.read();
                         let t: [[f32; 3]; 3] = t.matrix().into();
 
                         InstanceData {
