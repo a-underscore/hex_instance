@@ -38,7 +38,7 @@ use hex::{
 };
 use std::sync::Arc;
 
-pub type InstanceEntity = (Id, Arc<RwLock<Trans>>, Arc<RwLock<Instance>>);
+pub type InstanceEntity = (Id, Arc<RwLock<Instance>>, Arc<RwLock<Trans>>);
 pub type InstancePipeline = (RwLock<Arc<GraphicsPipeline>>, EntryPoint, EntryPoint);
 
 #[derive(Clone)]

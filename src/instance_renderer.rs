@@ -30,13 +30,13 @@ impl Renderer for InstanceRenderer {
                         .filter_map(|e| {
                             Some((
                                 e,
-                                cm.get::<Trans>(e)?.clone(),
                                 cm.get::<Instance>(e)?.clone(),
+                                cm.get::<Trans>(e)?.clone(),
                             ))
                         })
                         .fold(
-                            HashMap::<_, (_, Vec<_>)>::new(),
-                            |mut instances_map, (e, t, i)| {
+                            HashMap::new(),
+                            |mut instances_map, ref ie @ (_, ref i, _)| {
                                 let (_, instances) = {
                                     let i = i.read();
 
@@ -51,7 +51,7 @@ impl Renderer for InstanceRenderer {
                                         .or_insert((i.layer, Vec::new()))
                                 };
 
-                                instances.push((e, t.clone(), i.clone()));
+                                instances.push(ie.clone());
 
                                 instances_map
                             },
@@ -73,12 +73,12 @@ impl Renderer for InstanceRenderer {
         };
 
         if let Some(((ce, c, ct), instances)) = res {
-            for (_, (_, _, i), instances) in instances {
+            for (_, (_, i, _), instances) in instances {
                 let d = i.read().drawable.clone();
 
                 d.write().draw(
                     instances,
-                    (ce, ct.clone(), c.clone()),
+                    (ce, c.clone(), ct.clone()),
                     draw,
                     context.clone(),
                     em.clone(),

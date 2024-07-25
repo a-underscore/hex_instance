@@ -32,13 +32,13 @@ impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
     fn draw(
         &mut self,
         i: Vec<InstanceEntity>,
-        (_, ct, c): (Id, Arc<RwLock<Trans>>, Arc<RwLock<Camera>>),
+        (_, c, ct): (Id, Arc<RwLock<Camera>>, Arc<RwLock<Trans>>),
         (_, builder, recreate_swapchain): &mut Draw,
         context: Arc<RwLock<Context>>,
         _: Arc<RwLock<EntityManager>>,
         _: Arc<RwLock<ComponentManager>>,
     ) -> anyhow::Result<()> {
-        if let Some((_, _, instance)) = i.first() {
+        if let Some((_, instance, _)) = i.first() {
             let context = context.read();
             let instance = instance.read();
             let pipeline = {
@@ -58,7 +58,7 @@ impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
             let instance_data = {
                 let instance_data: Vec<_> = i
                     .iter()
-                    .map(|(_, t, i)| {
+                    .map(|(_, i, t)| {
                         let i = i.read();
                         let t = t.read();
                         let t: [[f32; 3]; 3] = t.matrix().into();
