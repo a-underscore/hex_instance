@@ -12,7 +12,6 @@ use hex::{
         shape::{Shape, Vertex2},
         Texture,
     },
-    component_manager::Component,
     components::Trans,
     nalgebra::Vector4,
     parking_lot::RwLock,
@@ -142,5 +141,3 @@ impl Instance {
         )?)
     }
 }
-
-impl Component for Instance {}

@@ -16,7 +16,7 @@ use hex::{
         padded::Padded,
         pipeline::{Pipeline, PipelineBindPoint},
     },
-    ComponentManager, Context, Drawable, EntityManager, Id,
+    Context, Drawable, EntityManager, Id,
 };
 use std::sync::Arc;
 
@@ -36,7 +36,6 @@ impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
         (_, builder, recreate_swapchain): &mut Draw,
         context: Arc<RwLock<Context>>,
         _: Arc<RwLock<EntityManager>>,
-        _: Arc<RwLock<ComponentManager>>,
     ) -> anyhow::Result<()> {
         if let Some((_, instance, _)) = i.first() {
             let context = context.read();

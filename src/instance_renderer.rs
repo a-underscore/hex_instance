@@ -4,7 +4,7 @@ use hex::{
     components::{Camera, Trans},
     parking_lot::RwLock,
     renderer_manager::{Draw, Renderer},
-    ComponentManager, Context, EntityManager,
+    Context, EntityManager,
 };
 use std::{collections::HashMap, sync::Arc};
 
@@ -16,22 +16,26 @@ impl Renderer for InstanceRenderer {
         draw: &mut Draw,
         context: Arc<RwLock<Context>>,
         em: Arc<RwLock<EntityManager>>,
-        cm: Arc<RwLock<ComponentManager>>,
     ) -> anyhow::Result<()> {
         let res = {
             let em = em.read();
-            let cm = cm.read();
 
             em.entities()
-                .find_map(|e| Some((e, cm.get::<Camera>(e)?.clone(), cm.get::<Trans>(e)?.clone())))
+                .find_map(|e| {
+                    Some((
+                        e,
+                        em.get_component::<Camera>(e)?,
+                        em.get_component::<Trans>(e)?,
+                    ))
+                })
                 .map(|c| {
                     let instances = em
                         .entities()
                         .filter_map(|e| {
                             Some((
                                 e,
-                                cm.get::<Instance>(e)?.clone(),
-                                cm.get::<Trans>(e)?.clone(),
+                                em.get_component::<Instance>(e)?,
+                                em.get_component::<Trans>(e)?,
                             ))
                         })
                         .fold(
@@ -82,7 +86,6 @@ impl Renderer for InstanceRenderer {
                     draw,
                     context.clone(),
                     em.clone(),
-                    cm.clone(),
                 )?;
             }
         }
