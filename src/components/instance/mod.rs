@@ -57,7 +57,7 @@ impl Instance {
         texture: Arc<Texture>,
         color: Vector4<f32>,
         layer: i32,
-    ) -> anyhow::Result<Self> {
+    ) -> anyhow::Result<Arc<RwLock<Self>>> {
         let vertex = vertex::load(context.device.clone())?
             .entry_point("main")
             .unwrap();
@@ -65,7 +65,7 @@ impl Instance {
             .entry_point("main")
             .unwrap();
 
-        Ok(Self {
+        Ok(Arc::new(RwLock::new(Self {
             shape,
             texture,
             pipeline: Arc::new((
@@ -76,7 +76,7 @@ impl Instance {
             drawable: InstanceDrawable::new(),
             color,
             layer,
-        })
+        })))
     }
 
     pub fn recreate_pipeline(&self, context: &Context) -> anyhow::Result<()> {
