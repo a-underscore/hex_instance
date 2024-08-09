@@ -3,7 +3,6 @@ use hex::{
     anyhow,
     components::{Camera, Trans},
     parking_lot::RwLock,
-    renderer_manager::Draw,
     vulkano::{
         buffer::{
             allocator::{SubbufferAllocator, SubbufferAllocatorCreateInfo},
@@ -16,7 +15,8 @@ use hex::{
         padded::Padded,
         pipeline::{Pipeline, PipelineBindPoint},
     },
-    Context, Drawable, EntityManager, Id,
+    world::renderer_manager::Draw,
+    Context, Drawable, Id, World,
 };
 use std::sync::Arc;
 
@@ -35,7 +35,7 @@ impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
         (_, c, ct): (Id, Arc<RwLock<Camera>>, Arc<RwLock<Trans>>),
         (_, builder, recreate_swapchain): &mut Draw,
         context: Arc<RwLock<Context>>,
-        _: Arc<RwLock<EntityManager>>,
+        _: Arc<RwLock<World>>,
     ) -> anyhow::Result<()> {
         if let Some((_, instance, _)) = i.first() {
             let context = context.read();

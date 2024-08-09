@@ -3,8 +3,8 @@ use hex::{
     anyhow,
     components::{Camera, Trans},
     parking_lot::RwLock,
-    renderer_manager::{Draw, Renderer},
-    Context, EntityManager,
+    world::renderer_manager::{Draw, Renderer},
+    Context, World,
 };
 use std::{collections::HashMap, sync::Arc};
 
@@ -15,9 +15,10 @@ impl Renderer for InstanceRenderer {
         &mut self,
         draw: &mut Draw,
         context: Arc<RwLock<Context>>,
-        em: Arc<RwLock<EntityManager>>,
+        world: Arc<RwLock<World>>,
     ) -> anyhow::Result<()> {
         let res = {
+            let em = world.read().em.clone();
             let em = em.read();
 
             em.entities()
@@ -85,7 +86,7 @@ impl Renderer for InstanceRenderer {
                     (ce, c.clone(), ct.clone()),
                     draw,
                     context.clone(),
-                    em.clone(),
+                    world.clone(),
                 )?;
             }
         }
