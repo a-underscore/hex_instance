@@ -81,7 +81,7 @@ impl Renderer for InstanceRenderer {
             for (_, (_, i, _), instances) in instances {
                 let d = i.read().drawable.clone();
 
-                d.write().draw(
+                d.draw(
                     instances,
                     (ce, c.clone(), ct.clone()),
                     draw,

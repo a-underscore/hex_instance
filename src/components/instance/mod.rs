@@ -44,10 +44,10 @@ pub type InstancePipeline = (RwLock<Arc<GraphicsPipeline>>, EntryPoint, EntryPoi
 pub struct Instance {
     pub shape: Arc<Shape>,
     pub texture: Arc<Texture>,
-    pub pipeline: Arc<InstancePipeline>,
-    pub drawable: Arc<RwLock<dyn Drawable<Vec<InstanceEntity>>>>,
     pub color: Vector4<f32>,
     pub layer: i32,
+    pub pipeline: Arc<InstancePipeline>,
+    pub drawable: Arc<dyn Drawable<Vec<InstanceEntity>>>,
 }
 
 impl Instance {
@@ -68,14 +68,14 @@ impl Instance {
         Ok(Arc::new(RwLock::new(Self {
             shape,
             texture,
+            color,
+            layer,
             pipeline: Arc::new((
                 RwLock::new(Self::pipeline(context, vertex.clone(), fragment.clone())?),
                 vertex,
                 fragment,
             )),
             drawable: InstanceDrawable::new(),
-            color,
-            layer,
         })))
     }
 

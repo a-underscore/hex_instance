@@ -23,14 +23,14 @@ use std::sync::Arc;
 pub struct InstanceDrawable;
 
 impl InstanceDrawable {
-    pub fn new() -> Arc<RwLock<Self>> {
-        Arc::new(RwLock::new(Self))
+    pub fn new() -> Arc<Self> {
+        Arc::new(Self)
     }
 }
 
 impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
     fn draw(
-        &mut self,
+        self: Arc<Self>,
         i: Vec<InstanceEntity>,
         (_, c, ct): (Id, Arc<RwLock<Camera>>, Arc<RwLock<Trans>>),
         (_, builder, recreate_swapchain): &mut Draw,
