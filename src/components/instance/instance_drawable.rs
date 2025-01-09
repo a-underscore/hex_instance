@@ -89,7 +89,7 @@ impl Drawable<Vec<InstanceEntity>> for InstanceDrawable {
                 *subbuffer.write()? = vertex::View {
                     camera_transform: <[[f32; 3]; 3]>::from(ct.matrix()).map(Padded),
                     camera_proj: c.proj().into(),
-                    z: c.calculate_z(instance.layer),
+                    z: -(instance.layer as f32),
                 };
 
                 PersistentDescriptorSet::new(
