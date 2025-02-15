@@ -65,9 +65,7 @@ impl Renderer for InstanceRenderer {
                     let mut instances: Vec<_> = instances
                         .into_values()
                         .filter_map(|(layer, i)| {
-                            let instance = i.first()?.clone();
-
-                            Some((layer, instance, i))
+                            i.first().cloned().map(|instance| (layer, instance, i))
                         })
                         .collect();
 
