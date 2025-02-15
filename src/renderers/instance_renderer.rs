@@ -69,7 +69,7 @@ impl Renderer for InstanceRenderer {
                         })
                         .collect();
 
-                    instances.sort_by_key(|(l, _, _)| *l);
+                    instances.sort_by(|(l1, _, _), (l2, _, _)| l2.cmp(l1));
 
                     (c, instances)
                 })
